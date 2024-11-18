@@ -8,23 +8,29 @@ export function Header() {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
   
   return (
     <header className="bg-indigo-700 shadow-lg">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <BookOpen className="h-8 w-8 text-white" />
-          <h1 className="text-xl font-bold text-white">Year 7 Mathematics</h1>
+          <Link to="/" className="flex items-center space-x-2">
+            <BookOpen className="h-8 w-8 text-white" />
+            <h1 className="text-xl font-bold text-white">Year 7 Mathematics</h1>
+          </Link>
         </div>
         <div className="flex items-center space-x-6">
           <NavLink to="/" icon={<Home className="h-5 w-5" />} label="Home" />
           {isAuthenticated && (
             <>
-              {(['student', 'tutor', 'administrator'].includes(user?.role || '')) && (
+              {(['Student', 'Tutor', 'Admin'].includes(user?.role || '')) && (
                 <NavLink to="/mathematics" label="Mathematics" />
               )}
               <NavLink to="/progress" label="My Progress" />

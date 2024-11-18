@@ -8,6 +8,7 @@ import { Mathematics } from './pages/Mathematics';
 import { Progress } from './pages/Progress';
 import { TestPage } from './pages/TestPage';
 import { LoginForm } from './components/Auth/LoginForm';
+import { RegisterForm } from './components/Auth/RegisterForm';
 import { Unauthorized } from './pages/Unauthorized';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { PracticeTests } from './pages/PracticeTests';
@@ -19,17 +20,18 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-grow">
             <Routes>
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/" element={<Home />} />
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/register" element={<RegisterForm />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
               <Route
                 path="/mathematics"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <Mathematics />
                   </ProtectedRoute>
                 }
@@ -37,7 +39,7 @@ function App() {
               <Route
                 path="/mathematics/practice"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <PracticeTests />
                   </ProtectedRoute>
                 }
@@ -45,7 +47,7 @@ function App() {
               <Route
                 path="/mathematics/tests/topic-wise"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <TopicTests />
                   </ProtectedRoute>
                 }
@@ -53,7 +55,7 @@ function App() {
               <Route
                 path="/mathematics/tests/mixed"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <MixedTestConfig />
                   </ProtectedRoute>
                 }
@@ -61,7 +63,7 @@ function App() {
               <Route
                 path="/mathematics/tests/mental"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <MentalArithmeticConfig />
                   </ProtectedRoute>
                 }
@@ -69,7 +71,7 @@ function App() {
               <Route
                 path="/progress"
                 element={
-                  <ProtectedRoute allowedRoles={['student', 'parent', 'tutor', 'administrator']}>
+                  <ProtectedRoute allowedRoles={['Student', 'Parent', 'Tutor', 'Admin']}>
                     <Progress />
                   </ProtectedRoute>
                 }
@@ -77,7 +79,7 @@ function App() {
               <Route
                 path="/test/:subject/:testId"
                 element={
-                  <ProtectedRoute allowedRoles={['student']}>
+                  <ProtectedRoute allowedRoles={['Student']}>
                     <TestPage />
                   </ProtectedRoute>
                 }

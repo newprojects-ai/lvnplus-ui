@@ -1,17 +1,12 @@
-export type Role = 'student' | 'parent' | 'tutor' | 'administrator';
+export type Role = 'Student' | 'Parent' | 'Tutor' | 'Admin';
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: Role;
-  avatar?: string;
-}
-
-export interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  password?: string;
+  parentId?: string;
+  exp?: number; // JWT expiration timestamp
+  iat?: number; // JWT issued at timestamp
 }
