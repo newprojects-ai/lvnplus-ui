@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, AlertCircle, Send, ChevronLeft, ChevronRight, Flag } from 'lucide-react';
-import 'katex/dist/katex.min.css';
-import { InlineMath } from 'react-katex';
 
 interface Question {
   id: number;
-  latex: string;
+  question: string;
   answer: string;
 }
 
@@ -15,7 +13,7 @@ type QuestionStatus = 'unseen' | 'seen' | 'answered' | 'flagged';
 // Generate 50 questions
 const questions: Question[] = Array.from({ length: 50 }, (_, i) => ({
   id: i + 1,
-  latex: `${Math.floor(Math.random() * 100)} + ${Math.floor(Math.random() * 100)}`, // Example formula
+  question: `${Math.floor(Math.random() * 100)} + ${Math.floor(Math.random() * 100)}`,
   answer: ''
 }));
 
@@ -247,7 +245,7 @@ export function TestPage() {
 
             <div className="mb-8">
               <div className="text-xl mb-4">
-                <InlineMath math={questions[currentQuestion - 1].latex} />
+                {questions[currentQuestion - 1].question}
               </div>
               <input
                 type="text"

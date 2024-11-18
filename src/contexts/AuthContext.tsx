@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User, Role } from '../types/auth';
-import { verifyToken, getAuthToken, setAuthToken, removeAuthToken } from '../utils/auth';
-import { authApi } from '../api/auth';
+import { User } from '../types/auth';
 import { LoginData } from '../types/api';
+import { authApi } from '../api/auth';
+import { verifyToken } from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -16,12 +16,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    const token = getAuthToken();
-    if (token) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
       const userData = verifyToken(token);
       return userData;
+    } catch {
+      return null;
     }
-    return null;
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,8 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: response.email,
         role: response.role
       };
-      setAuthToken(response.token);
       setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -47,8 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
     } finally {
-      removeAuthToken();
       setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setIsLoading(false);
     }
   }, []);
