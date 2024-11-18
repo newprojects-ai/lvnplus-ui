@@ -2,6 +2,7 @@ import React from 'react';
 import { BookOpen, Home, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { Role } from '../../types/auth';
 
 export function Header() {
   const location = useLocation();
@@ -15,6 +16,10 @@ export function Header() {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const isRoleAllowed = (allowedRoles: Role[]) => {
+    return user && allowedRoles.includes(user.role as Role);
   };
   
   return (
@@ -30,7 +35,7 @@ export function Header() {
           <NavLink to="/" icon={<Home className="h-5 w-5" />} label="Home" />
           {isAuthenticated && (
             <>
-              {(['Student', 'Tutor', 'Admin'].includes(user?.role || '')) && (
+              {isRoleAllowed(['Student', 'Tutor', 'Admin']) && (
                 <NavLink to="/mathematics" label="Mathematics" />
               )}
               <NavLink to="/progress" label="My Progress" />

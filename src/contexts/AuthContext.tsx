@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User } from '../types/auth';
-import { verifyToken, getAuthToken, removeAuthToken } from '../utils/auth';
+import { User, Role } from '../types/auth';
+import { verifyToken, getAuthToken, setAuthToken, removeAuthToken } from '../utils/auth';
 import { authApi } from '../api/auth';
 import { LoginData } from '../types/api';
 
@@ -17,7 +17,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const token = getAuthToken();
-    return token ? verifyToken(token) : null;
+    if (token) {
+      const userData = verifyToken(token);
+      return userData;
+    }
+    return null;
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: response.email,
         role: response.role
       };
+      setAuthToken(response.token);
       setUser(userData);
     } finally {
       setIsLoading(false);
@@ -42,27 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
     } finally {
-      setUser(null);
       removeAuthToken();
+      setUser(null);
       setIsLoading(false);
     }
   }, []);
-
-  // Verify token periodically
-  useEffect(() => {
-    const checkToken = () => {
-      const token = getAuthToken();
-      if (token) {
-        const userData = verifyToken(token);
-        if (!userData && user) {
-          logout();
-        }
-      }
-    };
-
-    const interval = setInterval(checkToken, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, [user, logout]);
 
   const value = {
     user,

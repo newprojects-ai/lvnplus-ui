@@ -1,40 +1,38 @@
 import { jwtDecode } from 'jwt-decode';
-import cookie from 'cookie';
 import { User } from '../types/auth';
+
+const TOKEN_KEY = 'auth_token';
 
 export const verifyToken = (token: string): User | null => {
   try {
     const decoded = jwtDecode<User>(token);
     const currentTime = Date.now() / 1000;
     
-    // Check if token is expired
     if (decoded.exp && decoded.exp < currentTime) {
+      removeAuthToken();
       return null;
     }
     
-    return decoded;
+    return {
+      id: decoded.id,
+      name: decoded.name,
+      email: decoded.email,
+      role: decoded.role
+    };
   } catch (error) {
+    removeAuthToken();
     return null;
   }
 };
 
 export const getAuthToken = (): string | null => {
-  const cookies = cookie.parse(document.cookie);
-  return cookies.token || null;
+  return localStorage.getItem(TOKEN_KEY);
 };
 
-export const setAuthToken = (token: string) => {
-  document.cookie = cookie.serialize('token', token, {
-    maxAge: 24 * 60 * 60, // 24 hours
-    path: '/',
-    secure: true,
-    sameSite: 'strict'
-  });
+export const setAuthToken = (token: string): void => {
+  localStorage.setItem(TOKEN_KEY, token);
 };
 
-export const removeAuthToken = () => {
-  document.cookie = cookie.serialize('token', '', {
-    maxAge: -1,
-    path: '/'
-  });
+export const removeAuthToken = (): void => {
+  localStorage.removeItem(TOKEN_KEY);
 };

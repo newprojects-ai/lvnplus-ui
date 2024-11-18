@@ -48,15 +48,21 @@ export function Hero() {
             Build strong mathematical foundations through interactive practice tests, comprehensive assessments, and detailed progress tracking.
           </p>
           {!isAuthenticated ? (
-            <div className="mt-5 sm:mt-8 flex justify-center">
+            <div className="mt-5 sm:mt-8 flex justify-center space-x-4">
               <Link
                 to="/login"
                 className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
               >
-                Get Started
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex items-center px-8 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 md:text-lg md:px-10"
+              >
+                Register
               </Link>
             </div>
-          ) : isFeatureEnabled(['Student']) && (
+          ) : user?.role === 'Student' && (
             <div className="mt-5 sm:mt-8 flex justify-center">
               <Link
                 to="/mathematics"
