@@ -1,0 +1,24 @@
+React with ts
+React Native with ts
+
+Backend - node.js with ts
+
+DB - MariaDB - inexpensive - rds
+
+API Gateway
+LB to ECS
+Route53 - LB 
+
+oAuth
+
+JWT token generation
+
+Certificate - encrypt using 
+
+File storage - S3 bucket
+
+
+
+
+
+
