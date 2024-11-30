@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User } from '../types/auth';
-import { LoginData } from '../types/api';
+import { User, Role } from '../types/auth';
+import { verifyToken, getAuthToken, setAuthToken, removeAuthToken } from '../utils/auth';
 import { authApi } from '../api/auth';
-import { verifyToken } from '../utils/auth';
+import { LoginData } from '../types/api';
 
 interface AuthContextType {
   user: User | null;
@@ -16,15 +16,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      
+    const token = getAuthToken();
+    if (token) {
       const userData = verifyToken(token);
       return userData;
-    } catch {
-      return null;
     }
+    return null;
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,16 +30,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authApi.login(credentials);
       const userData: User = {
-        id: response.user_id,
-        name: response.name,
-        email: response.email,
-        role: response.role
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        roles: response.user.roles
       };
+      setAuthToken(response.token);
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -53,9 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
     } finally {
+      removeAuthToken();
       setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
       setIsLoading(false);
     }
   }, []);

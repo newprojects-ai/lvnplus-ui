@@ -27,10 +27,10 @@ export function LoginForm() {
       console.error('Login error:', err);
       if (err instanceof ZodError) {
         setError('Please check your email and password format');
-      } else if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data?.message || 'Invalid email or password');
+      } else if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Invalid email or password');
       } else {
-        setError('Network error. Please check your connection and try again.');
+        setError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -75,7 +75,6 @@ export function LoginForm() {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
@@ -91,7 +90,6 @@ export function LoginForm() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"

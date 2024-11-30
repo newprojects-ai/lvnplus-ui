@@ -18,8 +18,8 @@ export function Header() {
     }
   };
 
-  const isRoleAllowed = (allowedRoles: Role[]) => {
-    return user && allowedRoles.includes(user.role);
+  const isRoleAllowed = (allowedRoles: string[]) => {
+    return user && user.roles.some(role => allowedRoles.includes(role));
   };
   
   return (
@@ -36,15 +36,12 @@ export function Header() {
           {isAuthenticated && (
             <>
               {isRoleAllowed(['Student', 'Tutor', 'Admin']) && (
-                <>
-                  <NavLink to="/mathematics" label="Mathematics" />
-                  <NavLink to="/mathematics/practice" label="Practice Tests" />
-                </>
+                <NavLink to="/mathematics" label="Mathematics" />
               )}
-              <NavLink to="/progress" label="Progress" />
+              <NavLink to="/progress" label="My Progress" />
               <div className="flex items-center space-x-4">
                 <span className="text-white text-sm">
-                  {user?.name} ({user?.role})
+                  {user?.firstName} {user?.lastName} ({user?.roles.join(', ')})
                 </span>
                 <button
                   onClick={handleLogout}

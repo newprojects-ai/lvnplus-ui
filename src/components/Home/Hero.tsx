@@ -13,27 +13,27 @@ export function Hero() {
       title: "Core Mathematics",
       description: "Master essential mathematical concepts aligned with the Year 7 curriculum.",
       link: "/mathematics",
-      allowedRoles: ['Student', 'Tutor', 'Admin'] as Role[]
+      allowedRoles: ['Student', 'Tutor', 'Admin']
     },
     {
       icon: <PenTool className="h-8 w-8 text-indigo-600" />,
       title: "Practice Tests",
       description: "Strengthen your skills with targeted quizzes and comprehensive assessments.",
       link: "/mathematics/practice",
-      allowedRoles: ['Student', 'Tutor', 'Admin'] as Role[]
+      allowedRoles: ['Student', 'Tutor', 'Admin']
     },
     {
       icon: <LineChart className="h-8 w-8 text-indigo-600" />,
       title: "Progress Tracking",
       description: "Monitor your improvement with detailed performance analytics.",
       link: "/progress",
-      allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin'] as Role[]
+      allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     }
   ];
 
-  const isFeatureEnabled = (allowedRoles?: Role[]) => {
+  const isFeatureEnabled = (allowedRoles?: string[]) => {
     if (!isAuthenticated || !user || !allowedRoles) return false;
-    return allowedRoles.includes(user.role);
+    return user.roles.some(role => allowedRoles.includes(role));
   };
 
   return (

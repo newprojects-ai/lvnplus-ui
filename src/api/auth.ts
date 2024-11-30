@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { LoginResponse, RegisterResponse, RegisterData, LoginData } from '../types/api';
 import { z } from 'zod';
+import { setAuthToken } from '../utils/auth';
 
 // Validation schemas
 const registerSchema = z.object({
@@ -18,56 +19,37 @@ const loginSchema = z.object({
 
 export const authApi = {
   register: async (data: RegisterData): Promise<RegisterResponse> => {
-    try {
-      const validatedData = registerSchema.parse(data);
-      const response = await apiClient.post<RegisterResponse>('/auth/register', validatedData);
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
+    // Validate input
+    const validatedData = registerSchema.parse(data);
+    
+    const response = await apiClient.post<RegisterResponse>('/auth/register', validatedData);
+    
+    if (response.data.token) {
+      setAuthToken(response.data.token);
     }
+    
+    return response.data;
   },
 
   login: async (data: LoginData): Promise<LoginResponse> => {
-    try {
-      const validatedData = loginSchema.parse(data);
-      const response = await apiClient.post<LoginResponse>('/auth/login', validatedData);
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+    // Validate input
+    const validatedData = loginSchema.parse(data);
+    
+    const response = await apiClient.post<LoginResponse>('/auth/login', validatedData);
+    
+    if (response.data.token) {
+      setAuthToken(response.data.token);
     }
+    
+    return response.data;
   },
 
   logout: async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout');
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Always remove the token, even if the API call fails
+      setAuthToken('');
     }
   },
-
-  validateToken: async (): Promise<boolean> => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return false;
-
-      await apiClient.get('/auth/validate');
-      return true;
-    } catch (error) {
-      console.error('Token validation error:', error);
-      return false;
-    }
-  }
 };
