@@ -62,7 +62,7 @@ export function Hero() {
                 Register
               </Link>
             </div>
-          ) : user?.role === 'Student' && (
+          ) : user?.roles.includes('Student') && (
             <div className="mt-5 sm:mt-8 flex justify-center">
               <Link
                 to="/mathematics"

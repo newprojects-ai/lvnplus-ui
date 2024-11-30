@@ -15,9 +15,10 @@ export const verifyToken = (token: string): User | null => {
     
     return {
       id: decoded.id,
-      name: decoded.name,
       email: decoded.email,
-      role: decoded.role
+      firstName: decoded.firstName,
+      lastName: decoded.lastName,
+      roles: decoded.roles
     };
   } catch (error) {
     removeAuthToken();
