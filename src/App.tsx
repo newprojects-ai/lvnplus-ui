@@ -13,6 +13,7 @@ import { LoginForm } from './components/Auth/LoginForm';
 import { RegisterForm } from './components/Auth/RegisterForm';
 import { Unauthorized } from './pages/Unauthorized';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
+import { PracticeTestsSubjectSelection } from './pages/PracticeTestsSubjectSelection';
 import { PracticeTests } from './pages/PracticeTests';
 import { TopicTests } from './pages/TopicTests';
 import { MixedTestConfig } from './pages/MixedTestConfig';
@@ -59,6 +60,22 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <PracticeTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/english/practice"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <PracticeTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/practice"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <PracticeTestsSubjectSelection />
                   </ProtectedRoute>
                 }
               />

@@ -15,6 +15,10 @@ export default {
     'bg-emerald-600',
     'bg-emerald-900/70',
     'text-emerald-600',
+    'border-indigo-100',
+    'border-indigo-500',
+    'border-emerald-100',
+    'border-emerald-500',
   ],
   plugins: [],
 };
