@@ -10,9 +10,9 @@ export function Hero() {
   const features = [
     {
       icon: <Calculator className="h-8 w-8 text-indigo-600" />,
-      title: "Core Mathematics",
-      description: "Master essential mathematical concepts aligned with the Year 7 curriculum.",
-      link: "/mathematics",
+      title: "Start Learning",
+      description: "Choose from Mathematics and English subjects to begin your learning journey.",
+      link: "/subjects",
       allowedRoles: ['Student', 'Tutor', 'Admin']
     },
     {
@@ -65,7 +65,7 @@ export function Hero() {
           ) : user?.roles.includes('Student') && (
             <div className="mt-5 sm:mt-8 flex justify-center">
               <Link
-                to="/mathematics"
+                to="/subjects"
                 className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
               >
                 Start Learning

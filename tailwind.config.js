@@ -4,5 +4,17 @@ export default {
   theme: {
     extend: {},
   },
+  safelist: [
+    'bg-indigo-100',
+    'bg-indigo-500',
+    'bg-indigo-600',
+    'bg-indigo-900/70',
+    'text-indigo-600',
+    'bg-emerald-100',
+    'bg-emerald-500',
+    'bg-emerald-600',
+    'bg-emerald-900/70',
+    'text-emerald-600',
+  ],
   plugins: [],
 };

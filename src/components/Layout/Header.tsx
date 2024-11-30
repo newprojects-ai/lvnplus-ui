@@ -36,7 +36,7 @@ export function Header() {
           {isAuthenticated && (
             <>
               {isRoleAllowed(['Student', 'Tutor', 'Admin']) && (
-                <NavLink to="/mathematics" label="Mathematics" />
+                <NavLink to="/subjects" label="Subjects" />
               )}
               <NavLink to="/progress" label="My Progress" />
               <div className="flex items-center space-x-4">
