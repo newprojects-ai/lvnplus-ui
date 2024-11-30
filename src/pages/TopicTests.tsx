@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Plus, MinusCircle } from 'lucide-react';
+import { Check, Plus, MinusCircle, Book } from 'lucide-react';
 import { TestConfig } from './TestConfig';
 import { topicsApi } from '../api/topics';
 import { Topic, Subtopic } from '../types/topics';
@@ -135,45 +135,54 @@ export function TopicTests() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Topic-wise Practice</h1>
-        <p className="mt-2 text-lg text-gray-600">Select topics and subtopics to practice</p>
+        <h1 className="text-4xl font-bold text-gray-900">Topic-wise Practice</h1>
+        <p className="mt-3 text-xl text-gray-600 max-w-2xl mx-auto">
+          Choose the topics you want to practice. You can select multiple topics and subtopics.
+        </p>
       </div>
 
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-2 text-gray-600">
+          <span className="font-medium">Selected:</span>
+          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
+            {selectedSubtopics.size} subtopics
+          </span>
+        </div>
         <button
           onClick={() => setShowConfig(true)}
           disabled={selectedSubtopics.size === 0}
-          className={`px-4 py-2 rounded-md text-white ${
+          className={`px-6 py-3 rounded-lg text-white font-medium transition-all duration-200 ${
             selectedSubtopics.size === 0
               ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-700'
+              : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg transform hover:-translate-y-0.5'
           }`}
         >
-          Next
+          Continue to Test Setup
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Topics List */}
-        <div className="lg:col-span-1 space-y-2">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Available Topics</h2>
           {topics.map((topic) => (
             <div
               key={topic.id}
-              className={`w-full flex items-center justify-between p-3 rounded-md text-left transition-colors ${
+              className={`w-full flex items-center justify-between p-4 rounded-lg text-left transition-all duration-200 mb-2 border ${
                 activeTopic === topic.id
-                  ? 'bg-indigo-50 text-indigo-600'
+                  ? 'bg-indigo-50 text-indigo-600 border-indigo-200 shadow-sm'
                   : getTopicSelectionState(topic.id) === 'full'
-                  ? 'bg-green-50 text-green-600'
+                  ? 'bg-green-50 text-green-600 border-green-200'
                   : getTopicSelectionState(topic.id) === 'partial'
-                  ? 'bg-yellow-50 text-yellow-600'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                  : 'hover:bg-gray-50 border-gray-200'
               }`}
             >
               <div 
-                className="flex items-center gap-2 flex-grow cursor-pointer"
+                className="flex items-center gap-3 flex-grow cursor-pointer"
                 onClick={() => handleTopicClick(topic.id)}
               >
-                <span>{topic.name}</span>
+                <span className="font-medium">{topic.name}</span>
                 {getTopicSelectionState(topic.id) === 'partial' && (
                   <MinusCircle className="h-4 w-4 text-yellow-500" />
                 )}
@@ -202,7 +211,7 @@ export function TopicTests() {
         </div>
 
         {/* Subtopics Panel */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow-md p-6">
             {activeTopic ? (
               <>
@@ -215,11 +224,11 @@ export function TopicTests() {
                     ?.subtopics.map((subtopic) => (
                       <div
                         key={subtopic.id}
-                        className={`flex items-center justify-between p-3 rounded-md border ${
+                        className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${
                           selectedSubtopics.has(subtopic.id)
-                            ? 'border-indigo-200 bg-indigo-50'
+                            ? 'border-indigo-200 bg-indigo-50 shadow-sm transform -translate-x-1'
                             : 'border-gray-200'
-                        }`}
+                        } hover:border-indigo-300`}
                       >
                         <span className="text-gray-700">{subtopic.name}</span>
                         <button
@@ -241,8 +250,13 @@ export function TopicTests() {
                 </div>
               </>
             ) : (
-              <div className="text-center text-gray-500 py-8">
-                Select a topic to view its subtopics
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Book className="h-12 w-12 mx-auto" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-700 mb-2">No Topic Selected</h3>
+                <p className="text-gray-500">
+                  Select a topic from the left panel to view its subtopics</p>
               </div>
             )}
           </div>
