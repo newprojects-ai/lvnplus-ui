@@ -12,19 +12,18 @@ export function TopicTests() {
   const [activeTopic, setActiveTopic] = useState<number | null>(null);
   const [selectedSubtopics, setSelectedSubtopics] = useState<Set<number>>(new Set());
   const [showConfig, setShowConfig] = useState(false);
-  const { subjectId: subjectIdParam } = useParams<{ subjectId: string }>();
-  const subjectId = subjectIdParam ? parseInt(subjectIdParam) : null;
+  const { subjectId } = useParams<{ subjectId: string }>();
 
   useEffect(() => {
     const fetchTopics = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        if (!subjectId) {
+        if (!subjectId || isNaN(parseInt(subjectId))) {
           setError('Invalid subject ID');
           return;
         }
-        const data = await topicsApi.getTopics(subjectId);
+        const data = await topicsApi.getTopics(parseInt(subjectId));
         setTopics(data);
       } catch (err) {
         setError('Failed to load topics. Please try again later.');
@@ -34,7 +33,7 @@ export function TopicTests() {
       }
     };
 
-    if (subjectId) {
+    if (subjectId && !isNaN(parseInt(subjectId))) {
       fetchTopics();
     }
   }, [subjectId]);

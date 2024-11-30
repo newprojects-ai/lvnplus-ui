@@ -1,6 +1,6 @@
 import React from 'react';
 import { Book, Shuffle, Brain } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface TestOption {
   icon: React.ReactNode;
@@ -11,14 +11,12 @@ interface TestOption {
 }
 
 export function PracticeTests() {
-  const { subjectId } = useParams<{ subjectId: string }>();
-
   const testOptions: TestOption[] = [
     {
       icon: <Book className="h-8 w-8" />,
       title: "Topic Wise",
       description: "Practice specific mathematical concepts one topic at a time",
-      path: `/subjects/${subjectId || ''}/tests/topic-wise`,
+      path: `/subjects/${subjectId}/tests/topic-wise`,
       color: "indigo"
     },
     {

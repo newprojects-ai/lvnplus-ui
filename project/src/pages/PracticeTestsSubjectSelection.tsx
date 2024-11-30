@@ -16,14 +16,14 @@ export function PracticeTestsSubjectSelection() {
       icon: <Calculator className="h-12 w-12" />,
       title: "Mathematics Practice",
       description: "Test your mathematical skills with various types of practice tests",
-      path: "/subjects/1/practice",
+      path: "/mathematics/practice",
       color: "indigo"
     },
     {
       icon: <Book className="h-12 w-12" />,
       title: "English Practice",
       description: "Enhance your language proficiency through comprehensive practice tests",
-      path: "/subjects/2/practice",
+      path: "/english/practice",
       color: "emerald"
     }
   ];
