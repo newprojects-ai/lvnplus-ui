@@ -1,9 +1,14 @@
 import { apiClient } from './client';
-import { Topic } from '../types/topics';
+import { Topic, Subtopic } from '../types/test';
 
 export const topicsApi = {
-  getTopics: async (subjectId: number): Promise<Topic[]> => {
-    const response = await apiClient.get<Topic[]>(`/topics?subjectId=${subjectId}`);
+  getTopics: async (): Promise<Topic[]> => {
+    const response = await apiClient.get<Topic[]>('/topics');
+    return response.data;
+  },
+
+  getSubtopics: async (topicId: string): Promise<Subtopic[]> => {
+    const response = await apiClient.get<Subtopic[]>(`/topics/${topicId}/subtopics`);
     return response.data;
   }
 };

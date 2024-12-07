@@ -56,7 +56,15 @@ function App() {
                 }
               />
               <Route
-                path="/subjects/:subjectId/practice"
+                path="/mathematics/practice"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <PracticeTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/english/practice"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <PracticeTests />
@@ -72,7 +80,7 @@ function App() {
                 }
               />
               <Route
-                path="/subjects/:subjectId/tests/topic-wise"
+                path="/mathematics/tests/topic-wise"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <TopicTests />

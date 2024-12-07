@@ -48,6 +48,28 @@
    - Added proper error handling for API responses
    - Improved UX with loading states
 
+### CORS Configuration Update (March 2024)
+
+#### Changes Made
+- Added `withCredentials: true` to axios client configuration
+- This enables proper handling of cross-origin requests with credentials
+- Allows cookies and authentication headers to be sent in CORS requests
+
+#### Technical Details
+1. CORS Issue:
+   - Browser blocking cross-origin requests due to missing CORS headers
+   - API server at localhost:3000 not properly configured for requests from localhost:5173
+
+2. Solution:
+   - Enabled credentials in axios configuration
+   - Ensures proper handling of authentication headers
+   - Maintains session consistency across origins
+
+#### Next Steps
+- [ ] Ensure API server has corresponding CORS configuration
+- [ ] Add error handling for CORS-related failures
+- [ ] Monitor for any authentication-related issues
+
 #### Next Steps
 - [ ] Implement refresh token mechanism
 - [ ] Add password reset functionality

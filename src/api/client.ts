@@ -7,7 +7,8 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  withCredentials: true // Enable sending cookies in cross-origin requests
 });
 
 // Request interceptor
