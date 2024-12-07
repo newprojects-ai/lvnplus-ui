@@ -81,9 +81,7 @@ export function TopicTests() {
   if (showConfig) {
     return (
       <TestConfig
-        selectedTopics={topics.filter(topic => 
-          topic.subtopics.some(st => selectedSubtopics.has(st.id))
-        ).map(t => t.id)}
+        topics={topics}
         selectedSubtopics={Array.from(selectedSubtopics)}
         onBack={() => setShowConfig(false)}
       />

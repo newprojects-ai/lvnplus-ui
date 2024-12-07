@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { TestConfirmation } from './TestConfirmation';
+import { Topic } from '../types/test';
 
 interface TestConfigProps {
-  selectedTopics: string[];
+  topics: Topic[];
   selectedSubtopics: string[];
   onBack: () => void;
 }
 
-export function TestConfig({ selectedTopics, selectedSubtopics, onBack }: TestConfigProps) {
+export function TestConfig({ topics, selectedSubtopics, onBack }: TestConfigProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [config, setConfig] = useState({
     questionCount: '10',
@@ -20,8 +21,8 @@ export function TestConfig({ selectedTopics, selectedSubtopics, onBack }: TestCo
   if (showConfirmation) {
     return (
       <TestConfirmation 
+        topics={topics}
         config={config}
-        selectedTopics={selectedTopics}
         selectedSubtopics={selectedSubtopics}
         onBack={() => setShowConfirmation(false)}
       />
