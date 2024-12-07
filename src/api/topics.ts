@@ -1,9 +1,15 @@
 import { apiClient } from './client';
 import { Topic, Subtopic } from '../types/test';
 
+interface TopicsParams {
+  subjectId: number;
+}
+
 export const topicsApi = {
-  getTopics: async (): Promise<Topic[]> => {
-    const response = await apiClient.get<Topic[]>('/topics');
+  getTopics: async (subjectId: number): Promise<Topic[]> => {
+    const response = await apiClient.get<Topic[]>('/topics', { 
+      params: { subjectId }
+    });
     return response.data;
   },
 

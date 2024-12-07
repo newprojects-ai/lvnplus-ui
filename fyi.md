@@ -70,6 +70,27 @@
 - [ ] Add error handling for CORS-related failures
 - [ ] Monitor for any authentication-related issues
 
+### Topic-wise Practice Updates (March 2024)
+
+#### API Integration
+- Implemented topic and subtopic fetching from API endpoints
+- Added loading and error states for better UX
+- Removed hardcoded topic data
+
+#### Implementation Details
+1. API Integration:
+   - Using `/topics?subjectId={id}` endpoint to fetch subject-specific topics
+   - Updated to use numeric subject IDs (1 for mathematics)
+   - Added loading spinner during data fetch
+   - Implemented error handling with retry functionality
+
+2. Component Updates:
+   - Modified TopicTests component to use API data
+   - Updated API endpoint to use query parameter with numeric subject ID
+   - Added loading and error states
+   - Improved user feedback during data loading
+   - Enhanced error logging for debugging
+
 #### Next Steps
 - [ ] Implement refresh token mechanism
 - [ ] Add password reset functionality

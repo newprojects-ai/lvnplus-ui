@@ -1,59 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, Plus, MinusCircle } from 'lucide-react';
 import { TestConfig } from './TestConfig';
+import { topicsApi } from '../api/topics';
+import { Topic } from '../types/test';
 
-interface Topic {
-  id: string;
-  name: string;
-  subtopics: Array<{
-    id: string;
-    name: string;
-  }>;
-}
-
-const topics: Topic[] = [
-  {
-    id: 'decimals',
-    name: 'Decimals',
-    subtopics: [
-      { id: 'decimals-add', name: 'Addition' },
-      { id: 'decimals-sub', name: 'Subtraction' },
-      { id: 'decimals-mul', name: 'Multiplication' },
-      { id: 'decimals-div', name: 'Division' }
-    ]
-  },
-  {
-    id: 'fractions',
-    name: 'Fractions',
-    subtopics: [
-      { id: 'fractions-add', name: 'Addition' },
-      { id: 'fractions-sub', name: 'Subtraction' },
-      { id: 'fractions-mul', name: 'Multiplication' },
-      { id: 'fractions-div', name: 'Division' }
-    ]
-  },
-  {
-    id: 'percentages',
-    name: 'Percentages',
-    subtopics: [
-      { id: 'percentages-increase', name: 'Increase' },
-      { id: 'percentages-decrease', name: 'Decrease' }
-    ]
-  },
-  {
-    id: 'factors',
-    name: 'Factors',
-    subtopics: [
-      { id: 'factors-lcm', name: 'LCM' },
-      { id: 'factors-hcf', name: 'HCF' }
-    ]
-  }
-];
 
 export function TopicTests() {
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const [selectedSubtopics, setSelectedSubtopics] = useState<Set<string>>(new Set());
   const [showConfig, setShowConfig] = useState(false);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadTopics();
+  }, []);
+
+  const loadTopics = async () => {
+    try {
+      setLoading(true);
+      const topicsData = await topicsApi.getTopics(1); // 1 is the subjectId for mathematics
+      setTopics(topicsData);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading topics:', err);
+      setError('Failed to load mathematics topics. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTopicClick = (topicId: string) => {
     setActiveTopic(activeTopic === topicId ? null : topicId);
@@ -111,6 +87,28 @@ export function TopicTests() {
         selectedSubtopics={Array.from(selectedSubtopics)}
         onBack={() => setShowConfig(false)}
       />
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={loadTopics}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        >
+          Retry
+        </button>
+      </div>
     );
   }
 
