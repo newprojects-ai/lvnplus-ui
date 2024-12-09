@@ -1,6 +1,6 @@
 import React from 'react';
 import { Book, Shuffle, Brain } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 interface TestOption {
   icon: React.ReactNode;
@@ -11,34 +11,75 @@ interface TestOption {
 }
 
 export function PracticeTests() {
-  const testOptions: TestOption[] = [
+  const { subjectId } = useParams<{ subjectId: string }>();
+
+  const getMathematicsTestOptions = (): TestOption[] => [
     {
       icon: <Book className="h-8 w-8" />,
       title: "Topic Wise",
       description: "Practice specific mathematical concepts one topic at a time",
-      path: "/mathematics/tests/topic-wise",
+      path: `/practice/tests/topic-wise/${subjectId}`,
       color: "indigo"
     },
     {
       icon: <Shuffle className="h-8 w-8" />,
       title: "Mixed",
       description: "Challenge yourself with questions from various topics",
-      path: "/mathematics/tests/mixed",
+      path: `/practice/tests/mixed/${subjectId}`,
       color: "purple"
     },
     {
       icon: <Brain className="h-8 w-8" />,
       title: "Mental Arithmetic",
       description: "Improve your mental calculation speed and accuracy",
-      path: "/mathematics/tests/mental",
+      path: `/practice/tests/mental/${subjectId}`,
       color: "green"
     }
   ];
 
+  const getEnglishTestOptions = (): TestOption[] => [
+    {
+      icon: <Book className="h-8 w-8" />,
+      title: "Grammar Practice",
+      description: "Improve your grammar and language skills",
+      path: `/practice/tests/grammar/${subjectId}`,
+      color: "emerald"
+    },
+    {
+      icon: <Shuffle className="h-8 w-8" />,
+      title: "Reading Comprehension",
+      description: "Enhance your reading and understanding skills",
+      path: `/practice/tests/reading/${subjectId}`,
+      color: "blue"
+    }
+  ];
+
+  const getTestOptions = (): TestOption[] => {
+    switch(subjectId) {
+      case '1': // Mathematics
+        return getMathematicsTestOptions();
+      case '2': // English
+        return getEnglishTestOptions();
+      default:
+        return [];
+    }
+  };
+
+  const testOptions = getTestOptions();
+
+  if (testOptions.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">Practice Tests</h1>
+        <p className="mt-4 text-lg text-gray-600">No practice tests available for this subject</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-gray-900">Practice Tests</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Select Test Type</h1>
         <p className="mt-4 text-lg text-gray-600">Choose your preferred testing mode</p>
       </div>
 

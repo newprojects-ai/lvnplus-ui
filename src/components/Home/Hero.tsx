@@ -19,7 +19,7 @@ export function Hero() {
       icon: <PenTool className="h-8 w-8 text-indigo-600" />,
       title: "Practice Tests",
       description: "Strengthen your skills with targeted quizzes and comprehensive assessments.",
-      link: "/practice",
+      link: "/practice-tests",
       allowedRoles: ['Student', 'Tutor', 'Admin']
     },
     {

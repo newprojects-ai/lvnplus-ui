@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Book, Calculator, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
 
 interface Subject {
@@ -79,7 +79,7 @@ export function PracticeTestsSubjectSelection() {
           return (
             <Link
               key={subject.id}
-              to={`/${subject.name.toLowerCase()}/practice`}
+              to={`/practice/tests/topic-wise/${subject.id}`}
               className={`bg-white rounded-xl shadow-md p-8 border-2 border-${color}-100 hover:border-${color}-500 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg`}
             >
               <div className={`inline-flex rounded-full bg-${color}-100 p-4 mb-6`}>

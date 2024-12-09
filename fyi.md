@@ -286,3 +286,70 @@
 - Develop content for placeholder subjects
 - Add more detailed subject descriptions
 - Implement subject-specific landing pages
+
+### Practice Routes Enhancement (December 2024)
+
+#### Key Changes
+- Updated routing for subject-specific practice pages
+- Added routes for Mathematics, English, Science, Geography, and Art practice
+- Created placeholder pages for subjects without full practice implementation
+
+#### Implementation Details
+- Dynamic route matching for practice pages
+- Consistent routing strategy across subjects
+- Flexible approach for future subject additions
+
+#### Routing Strategy
+- `/mathematics/practice`
+- `/english/practice`
+- `/science/practice`
+- `/geography/practice`
+- `/art/practice`
+
+#### Placeholder Support
+- Temporary pages for subjects without full practice content
+- Consistent UI for practice page placeholders
+- Easy to replace with full implementation later
+
+#### Next Steps
+- Develop comprehensive practice content for each subject
+- Implement subject-specific practice test generators
+- Create more detailed practice mode configurations
+
+### Dynamic Practice Tests Routing (December 2024)
+
+#### Key Changes
+- Implemented dynamic routing for practice tests
+- Support for subject-specific practice test options
+- Flexible test mode selection based on subject
+
+#### Implementation Details
+- Use route parameter to determine subject
+- Dynamic test options generation
+- Fallback for unsupported subjects
+- Consistent UI across different subjects
+
+#### Routing Strategy
+- `/:subject/practice` route
+- Dynamic test mode paths
+- Subject-specific test configurations
+
+#### Features
+- Mathematics practice tests
+  - Topic Wise
+  - Mixed Tests
+  - Mental Arithmetic
+
+- English practice tests
+  - Grammar Practice
+  - Reading Comprehension
+
+#### Extensibility
+- Easy to add new subjects
+- Configurable test modes
+- Scalable routing approach
+
+#### Next Steps
+- Add more subjects and test modes
+- Implement comprehensive test configurations
+- Create subject-specific test generators

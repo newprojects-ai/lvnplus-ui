@@ -89,31 +89,7 @@ function App() {
                 }
               />
               <Route
-                path="/mathematics/practice"
-                element={
-                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
-                    <PracticeTests />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/english/practice"
-                element={
-                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
-                    <PracticeTests />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/practice"
-                element={
-                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
-                    <PracticeTestsSubjectSelection />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mathematics/tests/topic-wise"
+                path="/practice/tests/topic-wise/:subjectId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <TopicTests />
@@ -121,7 +97,7 @@ function App() {
                 }
               />
               <Route
-                path="/mathematics/tests/mixed"
+                path="/practice/tests/mixed/:subjectId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <MixedTestConfig />
@@ -129,7 +105,7 @@ function App() {
                 }
               />
               <Route
-                path="/mathematics/tests/mental"
+                path="/practice/tests/mental/:subjectId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <MentalArithmeticConfig />
@@ -145,6 +121,22 @@ function App() {
                 }
               />
               <Route
+                path="/test/topics/:subjectId/:topicId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TopicTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/test/topics/:subjectId/:topicId/:subTopicId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TopicTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/progress"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Parent', 'Tutor', 'Admin']}>
@@ -153,10 +145,18 @@ function App() {
                 }
               />
               <Route
-                path="/test/:subject/:testId"
+                path="/test/:subjectId/:testId"
                 element={
                   <ProtectedRoute allowedRoles={['Student']}>
                     <TestPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/practice-tests"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <PracticeTestsSubjectSelection />
                   </ProtectedRoute>
                 }
               />
