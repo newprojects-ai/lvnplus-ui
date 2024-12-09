@@ -3,9 +3,10 @@ import { Check, Plus, MinusCircle } from 'lucide-react';
 import { TestConfig } from './TestConfig';
 import { topicsApi } from '../api/topics';
 import { Topic } from '../types/test';
-
+import { useParams } from 'react-router-dom';
 
 export function TopicTests() {
+  const { subjectId } = useParams<{ subjectId: string }>();
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
   const [selectedSubtopics, setSelectedSubtopics] = useState<Set<string>>(new Set());
   const [showConfig, setShowConfig] = useState(false);
@@ -15,17 +16,20 @@ export function TopicTests() {
 
   useEffect(() => {
     loadTopics();
-  }, []);
+  }, [subjectId]);
 
   const loadTopics = async () => {
     try {
       setLoading(true);
-      const topicsData = await topicsApi.getTopics(1); // 1 is the subjectId for mathematics
+      if (!subjectId) {
+        throw new Error('No subject ID provided');
+      }
+      const topicsData = await topicsApi.getTopics(parseInt(subjectId));
       setTopics(topicsData);
       setError(null);
     } catch (err) {
       console.error('Error loading topics:', err);
-      setError('Failed to load mathematics topics. Please try again.');
+      setError('Failed to load topics. Please try again.');
     } finally {
       setLoading(false);
     }

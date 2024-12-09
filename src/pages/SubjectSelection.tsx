@@ -1,76 +1,98 @@
-import React from 'react';
-import { Book, Calculator } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Book, Calculator, Globe, Microscope, Palette } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { apiClient } from '../api/client';
 
-interface SubjectCard {
-  icon: React.ReactNode;
-  title: string;
+interface Subject {
+  id: number;
+  name: string;
   description: string;
-  path: string;
-  color: string;
-  bgImage: string;
 }
 
 export function SubjectSelection() {
-  const subjects: SubjectCard[] = [
-    {
-      icon: <Calculator className="h-12 w-12" />,
-      title: "Mathematics",
-      description: "Master essential mathematical concepts through interactive learning and practice tests",
-      path: "/mathematics",
-      color: "indigo",
-      bgImage: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=2670"
-    },
-    {
-      icon: <Book className="h-12 w-12" />,
-      title: "English",
-      description: "Develop strong language skills with comprehensive reading and writing exercises",
-      path: "/english",
-      color: "emerald",
-      bgImage: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&q=80&w=2670"
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const response = await apiClient.get<Subject[]>('/subjects');
+        setSubjects(response.data);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to load subjects:', err);
+        setError('Failed to load subjects');
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
+
+  const getSubjectIcon = (subjectName: string) => {
+    switch(subjectName.toLowerCase()) {
+      case 'mathematics':
+        return <Calculator className="h-12 w-12 text-indigo-600" />;
+      case 'english':
+        return <Book className="h-12 w-12 text-emerald-600" />;
+      case 'science':
+        return <Microscope className="h-12 w-12 text-blue-600" />;
+      case 'geography':
+        return <Globe className="h-12 w-12 text-green-600" />;
+      case 'art':
+        return <Palette className="h-12 w-12 text-purple-600" />;
+      default:
+        return <Book className="h-12 w-12 text-gray-600" />;
     }
-  ];
+  };
+
+  if (isLoading) return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-xl text-gray-600">Loading subjects...</div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-xl text-red-600">{error}</div>
+    </div>
+  );
+
+  if (subjects.length === 0) return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-xl text-gray-600">No subjects available</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900">Choose Your Subject</h1>
-          <p className="mt-4 text-lg text-gray-600">Select a subject to begin your learning journey</p>
+          <h1 className="text-4xl font-bold text-gray-900">Our Subjects</h1>
+          <p className="mt-4 text-lg text-gray-600">Explore and learn across various disciplines</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {subjects.map((subject) => (
-            <Link
-              key={subject.title}
-              to={subject.path}
-              className={`group relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl`}
+            <div 
+              key={subject.id} 
+              className="bg-white rounded-2xl shadow-lg p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
-              <div className="absolute inset-0">
-                <img
-                  src={subject.bgImage}
-                  alt={subject.title}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className={`absolute inset-0 bg-${subject.color}-900/70`} />
+              <div className="flex items-center justify-between mb-6">
+                {getSubjectIcon(subject.name)}
+                <span className="text-2xl font-bold text-gray-900">{subject.name}</span>
               </div>
-              
-              <div className="relative p-8 sm:p-12">
-                <div className={`inline-flex rounded-full bg-${subject.color}-100 p-4 mb-6`}>
-                  <div className={`text-${subject.color}-600`}>{subject.icon}</div>
-                </div>
-                
-                <h2 className="text-3xl font-bold text-white mb-4">{subject.title}</h2>
-                <p className="text-lg text-white/90 mb-8">{subject.description}</p>
-                
-                <div className={`inline-flex items-center rounded-lg bg-${subject.color}-500 px-6 py-3 text-white transition-colors hover:bg-${subject.color}-600`}>
-                  Start Learning
-                  <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
+              <p className="text-gray-600 mb-6">{subject.description}</p>
+              <div className="flex justify-between items-center">
+                <Link 
+                  to={`/${subject.name.toLowerCase()}`} 
+                  className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
+                >
+                  Explore {subject.name}
+                </Link>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

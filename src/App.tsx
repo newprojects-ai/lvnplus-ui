@@ -56,6 +56,39 @@ function App() {
                 }
               />
               <Route
+                path="/science"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                      <h1 className="text-3xl font-bold text-center mb-6">Science</h1>
+                      <p className="text-center text-gray-600">Science content coming soon!</p>
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/geography"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                      <h1 className="text-3xl font-bold text-center mb-6">Geography</h1>
+                      <p className="text-center text-gray-600">Geography content coming soon!</p>
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/art"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                      <h1 className="text-3xl font-bold text-center mb-6">Art</h1>
+                      <p className="text-center text-gray-600">Art content coming soon!</p>
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/mathematics/practice"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
@@ -100,6 +133,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <MentalArithmeticConfig />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/test/topics/:subjectId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TopicTests />
                   </ProtectedRoute>
                 }
               />

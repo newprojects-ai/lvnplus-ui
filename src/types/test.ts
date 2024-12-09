@@ -24,13 +24,52 @@ export interface Question {
 export interface TestConfig {
   id?: string;
   userId: string;
-  testType: 'topic' | 'mixed' | 'mental';
+  testType: TestType;
   isTimed: boolean;
   selectedTopics: string[];
   selectedSubtopics: string[];
   questionCount: number;
   timeLimit?: number; // in seconds
   createdAt?: string;
+}
+
+export type TestType = 'TOPIC' | 'MIXED' | 'MENTAL_ARITHMETIC';
+
+export type TestStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
+
+export interface TestPlan {
+  testPlanId: number;
+  templateId?: number;
+  boardId: number;
+  testType: TestType;
+  timingType: 'TIMED' | 'UNTIMED';
+  timeLimit?: number;
+  studentId: number;
+  plannedBy: number;
+  plannedAt: string;
+  configuration: {
+    topics: number[];
+    subtopics: number[];
+    questionCounts: Record<string, number>;
+  };
+}
+
+export interface TestExecution {
+  executionId: number;
+  testPlanId: number;
+  status: TestStatus;
+  startedAt?: string;
+  completedAt?: string;
+  testData: {
+    questions: Question[];
+    responses: Record<string, string>;
+    timingData: {
+      startTime: number;
+      endTime?: number;
+      pausedDuration?: number;
+    };
+  };
+  score?: number;
 }
 
 export interface TestSession {

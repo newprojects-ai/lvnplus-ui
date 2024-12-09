@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Clock, ListChecks, Play, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { testsApi } from '../api/tests';
 
 import { Topic } from '../types/test';
 
@@ -16,13 +18,45 @@ interface TestConfirmationProps {
 
 export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: TestConfirmationProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedTopics = topics.filter(topic => 
     topic.subtopics.some(st => selectedSubtopics.includes(st.id))
   );
 
-  const handleStartTest = () => {
-    navigate('/test/mathematics/custom-test');
+  const handleStartTest = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Create test plan using the new API structure
+      const testPlan = await testsApi.plans.create({
+        userId: user.id,
+        testType: 'topic',
+        config: {
+          isTimed: config.isTimed,
+          topics: selectedTopics.map(t => t.id),
+          subtopics: selectedSubtopics,
+          questionCount: parseInt(config.questionCount),
+          timeLimit: config.isTimed ? 1800 : undefined // 30 minutes if timed
+        }
+      });
+
+      // Create test execution
+      const execution = await testsApi.executions.create(testPlan.id);
+      
+      // Navigate to test page with execution ID
+      navigate(`/test/${execution.id}`);
+    } catch (err) {
+      console.error('Failed to start test:', err);
+      setError('Failed to start the test. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,13 +126,28 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
         </div>
       </div>
 
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
       <div className="mt-8 flex justify-end">
         <button
           onClick={handleStartTest}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2"
+          disabled={isLoading}
+          className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Start Test
-          <Play className="h-4 w-4" />
+          {isLoading ? (
+            <>
+              <span className="animate-pulse">Starting Test...</span>
+            </>
+          ) : (
+            <>
+              Start Test
+              <Play className="h-4 w-4" />
+            </>
+          )}
         </button>
       </div>
     </div>
