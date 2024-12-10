@@ -18,6 +18,8 @@ import { PracticeTests } from './pages/PracticeTests';
 import { TopicTests } from './pages/TopicTests';
 import { MixedTestConfig } from './pages/MixedTestConfig';
 import { MentalArithmeticConfig } from './pages/MentalArithmeticConfig';
+import { TestExecution } from './pages/TestExecution';
+import { TestResults } from './pages/TestResults';
 
 function App() {
   return (
@@ -89,6 +91,14 @@ function App() {
                 }
               />
               <Route
+                path="/practice/tests/:subjectId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <PracticeTests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/practice/tests/topic-wise/:subjectId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
@@ -153,10 +163,34 @@ function App() {
                 }
               />
               <Route
+                path="/test/:executionId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TestExecution />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/practice-tests"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
                     <PracticeTestsSubjectSelection />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/test-results"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TestResults />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/test/results/:executionId"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <TestResults />
                   </ProtectedRoute>
                 }
               />

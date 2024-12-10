@@ -38,15 +38,15 @@ export type TestType = 'TOPIC' | 'MIXED' | 'MENTAL_ARITHMETIC';
 export type TestStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
 
 export interface TestPlan {
-  testPlanId: number;
-  templateId?: number;
+  testPlanId?: number;
+  templateId?: number | null;
   boardId: number;
   testType: TestType;
   timingType: 'TIMED' | 'UNTIMED';
   timeLimit?: number;
   studentId: number;
   plannedBy: number;
-  plannedAt: string;
+  plannedAt?: string;
   configuration: {
     topics: number[];
     subtopics: number[];

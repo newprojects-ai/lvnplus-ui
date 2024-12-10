@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { LoginResponse, RegisterResponse, RegisterData, LoginData } from '../types/api';
+import { LoginResponse, RegisterResponse, RegisterData, LoginData, User } from '../types/api';
 import { z } from 'zod';
 import { setAuthToken } from '../utils/auth';
 
@@ -35,18 +35,29 @@ export const authApi = {
     // Validate input
     const validatedData = loginSchema.parse(data);
     
-    const response = await apiClient.post<LoginResponse>('/auth/login', validatedData);
-    
-    if (response.data.token) {
-      setAuthToken(response.data.token);
+    try {
+      const response = await apiClient.post<{
+        token: string;
+        user: User;
+      }>('/auth/login', validatedData);
+      
+      if (response.data.token) {
+        setAuthToken(response.data.token);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    
-    return response.data;
   },
 
   logout: async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
     } finally {
       // Always remove the token, even if the API call fails
       setAuthToken('');

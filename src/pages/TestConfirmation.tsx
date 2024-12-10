@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
 
-import { Topic } from '../types/test';
+import { Topic, TestType } from '../types/test';
 
 interface TestConfirmationProps {
   config: {
@@ -18,7 +18,7 @@ interface TestConfirmationProps {
 
 export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: TestConfirmationProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,35 +27,115 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
   );
 
   const handleStartTest = async () => {
-    if (!user) return;
+    // Extremely comprehensive logging
+    console.group('Test Plan Creation Process');
+    console.log('Current User Object (Full):', JSON.stringify(user, null, 2));
+    console.log('Auth Loading State:', isAuthLoading);
+
+    // Check if authentication is still loading
+    if (isAuthLoading) {
+      console.warn('Authentication is still loading');
+      setError('Please wait while authentication completes');
+      console.groupEnd();
+      return;
+    }
+
+    // Enhanced user and studentId validation
+    if (!user) {
+      console.error('No user logged in');
+      console.groupEnd();
+      setError('You must be logged in to start a test');
+      return;
+    }
+
+    // Robust studentId validation
+    const studentId = user.id ? Number(user.id) : null;
+    console.log('Extracted Student ID:', studentId, 'User ID Type:', typeof user.id);
+
+    if (!studentId || isNaN(studentId)) {
+      console.error('Invalid Student ID', { 
+        userId: user.id, 
+        studentId: studentId,
+        userObject: user
+      });
+      console.groupEnd();
+      setError('Unable to identify student. Please log out and log in again.');
+      return;
+    }
+
+    // Check if user has student role with detailed logging
+    const isStudent = user.roles.includes('Student');
+    console.log('Is Student Role Present:', isStudent);
+    if (!isStudent) {
+      console.error('User does not have student role');
+      console.log('User Roles:', user.roles);
+      console.groupEnd();
+      setError('Only students can start a test');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
 
     try {
-      // Create test plan using the new API structure
-      const testPlan = await testsApi.plans.create({
-        userId: user.id,
-        testType: 'topic',
-        config: {
-          isTimed: config.isTimed,
-          topics: selectedTopics.map(t => t.id),
-          subtopics: selectedSubtopics,
-          questionCount: parseInt(config.questionCount),
-          timeLimit: config.isTimed ? 1800 : undefined // 30 minutes if timed
-        }
+      // Prepare question counts object with logging
+      const questionCounts: Record<string, number> = {};
+      selectedTopics.forEach(topic => {
+        questionCounts[topic.id] = parseInt(config.questionCount);
+        console.log(`Question Count for Topic ${topic.id}:`, questionCounts[topic.id]);
       });
 
-      // Create test execution
-      const execution = await testsApi.executions.create(testPlan.id);
+      // Detailed payload logging with forced number conversion
+      const payload = {
+        templateId: null,
+        boardId: 1,
+        testType: 'TOPIC',
+        timingType: config.isTimed ? 'TIMED' : 'UNTIMED',
+        timeLimit: config.isTimed ? 1800 : 0,
+        studentId: studentId, // Use validated studentId
+        plannedBy: studentId, // Use same validated studentId
+        configuration: {
+          topics: selectedTopics.map(t => Number(t.id)),
+          subtopics: selectedSubtopics.map(st => Number(st)),
+          questionCounts: questionCounts
+        }
+      };
+      console.log('Detailed Test Plan Payload:', JSON.stringify(payload, null, 2));
+
+      // Create test plan with extensive logging
+      console.log('Attempting to create test plan...');
+      const testPlan = await testsApi.plans.create(payload);
+      console.log('Test Plan Created Successfully:', JSON.stringify(testPlan, null, 2));
+
+      // Create test execution with logging
+      console.log('Attempting to create test execution...');
+      const execution = await testsApi.executions.create(testPlan.testPlanId);
+      console.log('Test Execution Created Successfully:', JSON.stringify(execution, null, 2));
       
-      // Navigate to test page with execution ID
-      navigate(`/test/${execution.id}`);
-    } catch (err) {
-      console.error('Failed to start test:', err);
-      setError('Failed to start the test. Please try again.');
+      // Navigate to test execution page
+      console.log('Navigating to test execution page...');
+      navigate(`/test/${execution.executionId}`);
+    } catch (err: any) {
+      console.error('Failed to start test - Full Error:', err);
+      
+      // More detailed error handling
+      if (err.response) {
+        console.error('Error Response Data:', err.response.data);
+        console.error('Error Response Status:', err.response.status);
+        console.error('Error Response Headers:', err.response.headers);
+        
+        // Set a more specific error message
+        setError(err.response.data?.message || 'Failed to start the test. Please try again.');
+      } else if (err.request) {
+        console.error('No response received:', err.request);
+        setError('No response from server. Please check your connection.');
+      } else {
+        console.error('Error setting up request:', err.message);
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+      console.groupEnd();
     }
   };
 
