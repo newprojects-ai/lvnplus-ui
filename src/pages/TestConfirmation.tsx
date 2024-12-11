@@ -3,6 +3,7 @@ import { ArrowLeft, Clock, ListChecks, Play, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
+import { distributeQuestions } from '../utils/questionDistribution';
 
 import { Topic, TestType } from '../types/test';
 
@@ -27,12 +28,10 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
   );
 
   const handleStartTest = async () => {
-    // Extremely comprehensive logging
     console.group('Test Plan Creation Process');
     console.log('Current User Object (Full):', JSON.stringify(user, null, 2));
     console.log('Auth Loading State:', isAuthLoading);
 
-    // Check if authentication is still loading
     if (isAuthLoading) {
       console.warn('Authentication is still loading');
       setError('Please wait while authentication completes');
@@ -40,7 +39,6 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       return;
     }
 
-    // Enhanced user and studentId validation
     if (!user) {
       console.error('No user logged in');
       console.groupEnd();
@@ -48,7 +46,6 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       return;
     }
 
-    // Robust studentId validation
     const studentId = user.id ? Number(user.id) : null;
     console.log('Extracted Student ID:', studentId, 'User ID Type:', typeof user.id);
 
@@ -63,7 +60,6 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       return;
     }
 
-    // Check if user has student role with detailed logging
     const isStudent = user.roles.includes('Student');
     console.log('Is Student Role Present:', isStudent);
     if (!isStudent) {
@@ -78,22 +74,19 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
     setError(null);
 
     try {
-      // Prepare question counts object with logging
-      const questionCounts: Record<string, number> = {};
-      selectedTopics.forEach(topic => {
-        questionCounts[topic.id] = parseInt(config.questionCount);
-        console.log(`Question Count for Topic ${topic.id}:`, questionCounts[topic.id]);
-      });
+      const totalQuestions = parseInt(config.questionCount);
+      const questionCounts = distributeQuestions(totalQuestions, selectedTopics.length);
+      
+      console.log('Question distribution:', questionCounts);
 
-      // Detailed payload logging with forced number conversion
       const payload = {
         templateId: null,
         boardId: 1,
         testType: 'TOPIC',
         timingType: config.isTimed ? 'TIMED' : 'UNTIMED',
         timeLimit: config.isTimed ? 1800 : 0,
-        studentId: studentId, // Use validated studentId
-        plannedBy: studentId, // Use same validated studentId
+        studentId: studentId,
+        plannedBy: studentId,
         configuration: {
           topics: selectedTopics.map(t => Number(t.id)),
           subtopics: selectedSubtopics.map(st => Number(st)),
@@ -102,29 +95,24 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       };
       console.log('Detailed Test Plan Payload:', JSON.stringify(payload, null, 2));
 
-      // Create test plan with extensive logging
       console.log('Attempting to create test plan...');
       const testPlan = await testsApi.plans.create(payload);
       console.log('Test Plan Created Successfully:', JSON.stringify(testPlan, null, 2));
 
-      // Create test execution with logging
       console.log('Attempting to create test execution...');
       const execution = await testsApi.executions.create(testPlan.testPlanId);
       console.log('Test Execution Created Successfully:', JSON.stringify(execution, null, 2));
       
-      // Navigate to test execution page
       console.log('Navigating to test execution page...');
       navigate(`/test/${execution.executionId}`);
     } catch (err: any) {
       console.error('Failed to start test - Full Error:', err);
       
-      // More detailed error handling
       if (err.response) {
         console.error('Error Response Data:', err.response.data);
         console.error('Error Response Status:', err.response.status);
         console.error('Error Response Headers:', err.response.headers);
         
-        // Set a more specific error message
         setError(err.response.data?.message || 'Failed to start the test. Please try again.');
       } else if (err.request) {
         console.error('No response received:', err.request);
