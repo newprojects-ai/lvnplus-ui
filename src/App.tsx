@@ -20,6 +20,7 @@ import { MixedTestConfig } from './pages/MixedTestConfig';
 import { MentalArithmeticConfig } from './pages/MentalArithmeticConfig';
 import { TestExecution } from './pages/TestExecution';
 import { TestResults } from './pages/TestResults';
+import { TestSession } from './pages/TestSession';
 
 function App() {
   return (
@@ -166,7 +167,7 @@ function App() {
                 path="/test/:executionId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
-                    <TestExecution />
+                    <TestSession />
                   </ProtectedRoute>
                 }
               />
