@@ -74,11 +74,6 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
     setError(null);
 
     try {
-      const totalQuestions = parseInt(config.questionCount);
-      const questionCounts = distributeQuestions(totalQuestions, selectedTopics.length);
-      
-      console.log('Question distribution:', questionCounts);
-
       const payload = {
         templateId: null,
         boardId: 1,
@@ -90,7 +85,7 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
         configuration: {
           topics: selectedTopics.map(t => Number(t.id)),
           subtopics: selectedSubtopics.map(st => Number(st)),
-          questionCounts: questionCounts
+          totalQuestionCount: parseInt(config.questionCount)
         }
       };
       console.log('Detailed Test Plan Payload:', JSON.stringify(payload, null, 2));

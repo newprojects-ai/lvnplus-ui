@@ -47,7 +47,7 @@ export interface TestPlan {
   configuration: {
     topics: number[];
     subtopics: number[];
-    questionCounts: Record<string, number>;
+    totalQuestionCount: number;
   };
 }
 
