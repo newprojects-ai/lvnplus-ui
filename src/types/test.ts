@@ -11,14 +11,11 @@ export interface Subtopic {
 }
 
 export interface Question {
-  id: string;
-  content: string;
-  options?: string[];
-  correctAnswer: string;
-  explanation?: string;
-  topicId: string;
-  subtopicId: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  question_id: number;
+  subtopic_id: number;
+  question_text: string;
+  options: string[];
+  difficulty_level: number;
 }
 
 export interface TestConfig {
@@ -54,22 +51,24 @@ export interface TestPlan {
   };
 }
 
+export interface TestResponse {
+  question_id: number;
+  student_answer: string | null;
+  is_correct: boolean | null;
+  time_spent: number;
+}
+
 export interface TestExecution {
-  executionId: number;
-  testPlanId: number;
+  executionId: string;
+  testPlanId: string;
   status: TestStatus;
-  startedAt?: string;
-  completedAt?: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  score: number | null;
   testData: {
     questions: Question[];
-    responses: Record<string, string>;
-    timingData: {
-      startTime: number;
-      endTime?: number;
-      pausedDuration?: number;
-    };
+    responses: TestResponse[];
   };
-  score?: number;
 }
 
 export interface TestSession {

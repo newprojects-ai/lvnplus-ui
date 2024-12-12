@@ -20,6 +20,8 @@ export function TestSession() {
 
   // Validate and parse execution ID
   const validateExecutionId = (id?: string): number | null => {
+    console.log('Validating Execution ID:', { id, type: typeof id });
+    
     if (!id) {
       console.warn('No execution ID provided');
       return null;
@@ -40,12 +42,19 @@ export function TestSession() {
       return null;
     }
 
+    console.log('Validated Execution ID:', parsedId);
     return parsedId;
   };
 
   // Fetch test execution details
   useEffect(() => {
     const fetchTestExecution = async () => {
+      console.log('TestSession Component - Initial State:', {
+        executionId,
+        user: user ? 'User Logged In' : 'No User',
+        authContextAvailable: !!user
+      });
+
       // Validate user and execution ID
       if (!user) {
         console.warn('No user authenticated');
@@ -56,6 +65,7 @@ export function TestSession() {
       // Validate execution ID
       const validExecutionId = validateExecutionId(executionId);
       if (!validExecutionId) {
+        console.error('Invalid Execution ID Validation Failed');
         setError('Invalid execution ID provided.');
         return;
       }
@@ -72,7 +82,15 @@ export function TestSession() {
         
         // Validate execution data
         if (!executionData) {
+          console.error('No execution data found for the given ID');
           throw new Error('No execution data found for the given ID');
+        }
+
+        // Additional validation for critical data
+        if (!executionData.testData || !executionData.testData.questions || executionData.testData.questions.length === 0) {
+          console.error('No questions found in execution data', executionData);
+          setError('No questions available for this test execution.');
+          return;
         }
 
         setExecution(executionData);
@@ -82,7 +100,16 @@ export function TestSession() {
           const timeLimit = executionData.testPlan.timeLimit * 1000; // Convert to milliseconds
           const startTime = executionData.startTime ? new Date(executionData.startTime).getTime() : Date.now();
           const elapsedTime = Date.now() - startTime;
-          setTimeRemaining(Math.max(0, timeLimit - elapsedTime));
+          const remainingTime = Math.max(0, timeLimit - elapsedTime);
+          
+          console.log('Time Calculation:', {
+            timeLimit,
+            startTime,
+            elapsedTime,
+            remainingTime
+          });
+
+          setTimeRemaining(remainingTime);
         }
       } catch (apiError) {
         console.error('API Error fetching test execution:', apiError);
@@ -139,8 +166,8 @@ export function TestSession() {
     return () => clearInterval(timer);
   }, [timeRemaining]);
 
-  const handleAnswerSelect = (answerId: string) => {
-    setSelectedAnswer(answerId);
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
   };
 
   const handleNextQuestion = async () => {
@@ -149,11 +176,11 @@ export function TestSession() {
     try {
       await testsApi.executions.submitAnswer(
         parseInt(executionId!),
-        execution.questions[currentQuestionIndex].id,
+        execution.testData.questions[currentQuestionIndex].id,
         selectedAnswer
       );
 
-      if (currentQuestionIndex < execution.questions.length - 1) {
+      if (currentQuestionIndex < execution.testData.questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
         setSelectedAnswer(null);
       } else {
@@ -199,90 +226,133 @@ export function TestSession() {
     );
   }
 
-  if (!execution) {
-    return null;
+  if (!execution || !execution.testData?.questions || execution.testData.questions.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center">
+        <div className="text-red-600 mb-4">No questions available for this test.</div>
+        <button
+          onClick={() => navigate('/practice-tests')}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        >
+          Return to Practice Tests
+        </button>
+      </div>
+    );
   }
 
-  const currentQuestion = execution.questions[currentQuestionIndex];
+  const currentQuestion = execution.testData.questions[currentQuestionIndex];
+  const currentResponse = execution.testData.responses[currentQuestionIndex];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md p-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-sm text-gray-500">
-            Question {currentQuestionIndex + 1} of {execution.questions.length}
-          </div>
-          {timeRemaining !== null && (
-            <div className="flex items-center gap-2 text-gray-700">
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Left Pane - Question Navigation */}
+      <div className="w-64 bg-white border-r border-gray-200 p-4">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-700">Questions</h2>
+          <p className="text-sm text-gray-500">Total: {execution.testData.questions.length}</p>
+        </div>
+        
+        {/* Timer */}
+        {timeRemaining !== null && (
+          <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-center gap-2 text-gray-700">
               <Clock className="h-5 w-5" />
-              <span>
+              <span className="text-lg font-semibold">
                 {Math.floor(timeRemaining / 60000)}:
                 {Math.floor((timeRemaining % 60000) / 1000)
                   .toString()
                   .padStart(2, '0')}
               </span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Question */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">{currentQuestion.text}</h2>
-          <div className="space-y-4">
-            {currentQuestion.options.map((option) => (
-              <div
-                key={option.id}
-                onClick={() => handleAnswerSelect(option.id)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                  selectedAnswer === option.id
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-3">
+        {/* Question Navigation Buttons */}
+        <div className="grid grid-cols-5 gap-2">
+          {execution.testData.questions.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentQuestionIndex(index)}
+              className={`
+                w-full aspect-square rounded-lg text-sm font-medium
+                ${
+                  currentQuestionIndex === index
+                    ? 'bg-indigo-600 text-white'
+                    : execution.testData.responses[index]?.student_answer
+                    ? 'bg-indigo-100 text-indigo-600 border-2 border-indigo-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }
+              `}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Pane - Current Question */}
+      <div className="flex-1 p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-8">
+            {/* Question Content */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">{currentQuestion.question_text}</h2>
+              <div className="space-y-4">
+                {currentQuestion.options.map((option, index) => (
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      selectedAnswer === option.id
-                        ? 'border-indigo-500 bg-indigo-500'
-                        : 'border-gray-300'
+                    key={index}
+                    onClick={() => handleAnswerSelect(option)}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                      selectedAnswer === option
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    {selectedAnswer === option.id && (
-                      <CheckCircle2 className="h-4 w-4 text-white" />
-                    )}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedAnswer === option
+                            ? 'border-indigo-500 bg-indigo-500'
+                            : 'border-gray-300'
+                        }`}
+                      >
+                        {selectedAnswer === option && (
+                          <CheckCircle2 className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                      <span className="text-gray-900">{option}</span>
+                    </div>
                   </div>
-                  <span className="text-gray-900">{option.text}</span>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between">
-          <button
-            onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-            disabled={currentQuestionIndex === 0}
-            className="px-4 py-2 flex items-center gap-2 text-gray-600 disabled:opacity-50"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            Previous
-          </button>
-          <button
-            onClick={handleNextQuestion}
-            disabled={!selectedAnswer}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {currentQuestionIndex === execution.questions.length - 1 ? (
-              'Submit Test'
-            ) : (
-              <>
-                Next
-                <ArrowRight className="h-5 w-5" />
-              </>
-            )}
-          </button>
+            {/* Navigation Buttons */}
+            <div className="flex justify-between">
+              <button
+                onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentQuestionIndex === 0}
+                className="px-4 py-2 flex items-center gap-2 text-gray-600 disabled:opacity-50"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                Previous
+              </button>
+              <button
+                onClick={handleNextQuestion}
+                disabled={!selectedAnswer}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {currentQuestionIndex === execution.testData.questions.length - 1 ? (
+                  'Submit Test'
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
