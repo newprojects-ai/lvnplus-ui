@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
 import { TestExecution as TestExecutionType, Question } from '../types/test';
@@ -17,27 +18,103 @@ export function TestSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Validate and parse execution ID
+  const validateExecutionId = (id?: string): number | null => {
+    if (!id) {
+      console.warn('No execution ID provided');
+      return null;
+    }
+
+    // Trim and remove any non-numeric characters
+    const cleanedId = id.trim().replace(/[^0-9]/g, '');
+    
+    if (cleanedId === '') {
+      console.warn('Execution ID is empty after cleaning');
+      return null;
+    }
+
+    const parsedId = parseInt(cleanedId, 10);
+    
+    if (isNaN(parsedId) || parsedId <= 0) {
+      console.warn(`Invalid execution ID: ${id}, parsed as: ${parsedId}`);
+      return null;
+    }
+
+    return parsedId;
+  };
+
   // Fetch test execution details
   useEffect(() => {
     const fetchTestExecution = async () => {
-      if (!executionId || !user) return;
+      // Validate user and execution ID
+      if (!user) {
+        console.warn('No user authenticated');
+        setError('Please log in to access the test');
+        return;
+      }
+
+      // Validate execution ID
+      const validExecutionId = validateExecutionId(executionId);
+      if (!validExecutionId) {
+        setError('Invalid execution ID provided.');
+        return;
+      }
 
       try {
         setIsLoading(true);
-        const executionData = await testsApi.executions.getById(parseInt(executionId));
+        console.group('Test Execution Fetch');
+        console.log('Fetching test execution with validated ID:', validExecutionId);
+        
+        // Fetch execution data
+        const executionData = await testsApi.executions.getById(validExecutionId);
+        
+        console.log('Execution data received:', JSON.stringify(executionData, null, 2));
+        
+        // Validate execution data
+        if (!executionData) {
+          throw new Error('No execution data found for the given ID');
+        }
+
         setExecution(executionData);
 
         // Set initial time remaining if timed test
-        if (executionData.testPlan.timingType === 'TIMED') {
+        if (executionData.testPlan?.timingType === 'TIMED') {
           const timeLimit = executionData.testPlan.timeLimit * 1000; // Convert to milliseconds
           const startTime = executionData.startTime ? new Date(executionData.startTime).getTime() : Date.now();
           const elapsedTime = Date.now() - startTime;
           setTimeRemaining(Math.max(0, timeLimit - elapsedTime));
         }
-      } catch (err) {
-        console.error('Failed to fetch test execution:', err);
-        setError('Failed to load test. Please try again.');
+      } catch (apiError) {
+        console.error('API Error fetching test execution:', apiError);
+        
+        // More detailed error handling
+        if (axios.isAxiosError(apiError)) {
+          const errorDetails = {
+            url: apiError.config?.url,
+            method: apiError.config?.method,
+            status: apiError.response?.status,
+            data: apiError.response?.data,
+            headers: apiError.response?.headers
+          };
+          
+          console.error('Detailed Axios Error:', errorDetails);
+          
+          const errorMessage = apiError.response?.data?.message || 
+                               apiError.response?.statusText || 
+                               'Unknown API error';
+          
+          setError(`Failed to load test: ${errorMessage}`);
+          
+          // Additional logging for debugging
+          console.error('Full Axios Error Object:', apiError);
+          console.error('Request Configuration:', apiError.config);
+        } else if (apiError instanceof Error) {
+          setError(`Failed to load test: ${apiError.message}`);
+        } else {
+          setError('Failed to load test. Please try again.');
+        }
       } finally {
+        console.groupEnd();
         setIsLoading(false);
       }
     };
