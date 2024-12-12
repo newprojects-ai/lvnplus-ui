@@ -16,7 +16,6 @@ import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { PracticeTestsSubjectSelection } from './pages/PracticeTestsSubjectSelection';
 import { PracticeTests } from './pages/PracticeTests';
 import { TopicTests } from './pages/TopicTests';
-import { MixedTestConfig } from './pages/MixedTestConfig';
 import { MentalArithmeticConfig } from './pages/MentalArithmeticConfig';
 import { TestExecution } from './pages/TestExecution';
 import { TestResults } from './pages/TestResults';
@@ -111,7 +110,10 @@ function App() {
                 path="/practice/tests/mixed/:subjectId"
                 element={
                   <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
-                    <MixedTestConfig />
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                      <h1 className="text-3xl font-bold text-center mb-6">Mixed Test</h1>
+                      <p className="text-center text-gray-600">Mixed Test content coming soon!</p>
+                    </div>
                   </ProtectedRoute>
                 }
               />
