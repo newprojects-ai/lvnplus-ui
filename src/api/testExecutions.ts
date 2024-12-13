@@ -38,5 +38,12 @@ export const testExecutionsApi = {
       `/tests/executions/${executionId}/resume`
     );
     return response.data;
+  },
+
+  start: async (executionId: number): Promise<TestExecution> => {
+    const response = await apiClient.post<TestExecution>(
+      `/tests/executions/${executionId}/start`
+    );
+    return response.data;
   }
 };

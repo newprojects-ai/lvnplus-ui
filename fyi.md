@@ -546,3 +546,31 @@
 - Dynamic question count based on test plan
 - Real-time progress tracking
 - Clear visual feedback for question status
+
+### Test Start API Integration (2024-12-13 09:48:32Z)
+#### What
+Added start endpoint to testExecutions API without modifying UI:
+
+```typescript
+start: async (executionId: number): Promise<TestExecution> => {
+  const response = await apiClient.post<TestExecution>(
+    `/tests/executions/${executionId}/start`
+  );
+  return response.data;
+}
+```
+
+#### Changes Made
+- Added start endpoint to testExecutions API
+- Uses POST method as required
+- Returns TestExecution type
+- Uses existing apiClient for consistent error handling
+
+#### No UI Changes
+- Kept existing test session UI unchanged
+- No modifications to test-taking screens
+- Preserved current user experience
+
+#### Next Steps
+1. Frontend team to integrate start endpoint at appropriate point in user flow
+2. Maintain existing UI/UX while ensuring test is properly started

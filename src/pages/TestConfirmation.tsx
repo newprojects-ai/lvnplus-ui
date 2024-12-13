@@ -98,6 +98,10 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       const execution = await testsApi.executions.create(testPlan.testPlanId);
       console.log('Test Execution Created Successfully:', JSON.stringify(execution, null, 2));
       
+      console.log('Starting test execution...');
+      const startedExecution = await testsApi.executions.start(execution.executionId);
+      console.log('Test Execution Started Successfully:', JSON.stringify(startedExecution, null, 2));
+      
       console.log('Navigating to test execution page...');
       navigate(`/test/${execution.executionId}`);
     } catch (err: any) {
