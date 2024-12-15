@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
-import axios from 'axios'; // Import axios directly
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
 import { TestExecution as TestExecutionType, Question } from '../types/test';
-import { getAuthToken } from '../utils/auth'; // Import auth token utility
+import { getAuthToken } from '../utils/auth';
+import { renderMathContent } from '../utils/katexParser';
+import 'katex/dist/katex.min.css';
 
 export function TestSession() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -18,6 +20,7 @@ export function TestSession() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validate and parse execution ID
   const validateExecutionId = (id?: string): number | null => {
@@ -106,31 +109,28 @@ export function TestSession() {
   };
 
   // Navigate to previous question
-  const handlePreviousQuestion = () => {
+  const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
-  // Navigate to next question or submit test
-  const handleNextQuestion = () => {
+  // Navigate to next question
+  const handleNext = () => {
     if (!execution) return;
 
-    // If not on last question, move to next
     if (currentQuestionIndex < execution.testData.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
-    } 
-    // If on last question, submit test
-    else {
-      handleSubmitTest();
     }
   };
 
-  // Submit entire test with all answers
+  // Handle test submission
   const handleSubmitTest = async () => {
     if (!execution) return;
 
     try {
+      setIsSubmitting(true);
+
       // Prepare answers payload with time tracking
       const startTime = execution.startTime ? new Date(execution.startTime).getTime() : Date.now();
       const endTime = Date.now();
@@ -145,64 +145,40 @@ export function TestSession() {
         }))
       };
 
-      console.log('Submitting answers payload:', {
-        executionId,
-        payload: answersPayload
-      });
-
-      // Use axios directly with full URL and auth token
+      // Get auth token
       const token = getAuthToken();
       
-      try {
-        const submitResponse = await axios.post(
-          `http://localhost:3000/api/tests/executions/${executionId}/submitAllAnswers`, 
-          answersPayload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': token ? `Bearer ${token}` : undefined
-            }
+      // Submit answers
+      await axios.post(
+        `http://localhost:3000/api/tests/executions/${executionId}/submitAllAnswers`, 
+        answersPayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : undefined
           }
-        );
-        console.log('Submit answers response:', submitResponse);
-      } catch (submitError) {
-        console.error('Submit answers error details:', {
-          error: submitError,
-          message: submitError.response?.data,
-          status: submitError.response?.status,
-          headers: submitError.response?.headers
-        });
-        throw submitError;
-      }
+        }
+      );
 
-      try {
-        // Complete the test using axios directly
-        const completeResponse = await axios.post(
-          `http://localhost:3000/api/tests/executions/${executionId}/complete`,
-          {},
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': token ? `Bearer ${token}` : undefined
-            }
+      // Complete the test
+      await axios.post(
+        `http://localhost:3000/api/tests/executions/${executionId}/complete`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : undefined
           }
-        );
-        console.log('Complete test response:', completeResponse);
-      } catch (completeError) {
-        console.error('Complete test error details:', {
-          error: completeError,
-          message: completeError.response?.data,
-          status: completeError.response?.status,
-          headers: completeError.response?.headers
-        });
-        throw completeError;
-      }
+        }
+      );
       
       // Navigate to results
       navigate(`/test/results/${executionId}`);
     } catch (err) {
       console.error('Failed to submit test:', err);
       setError(`Failed to submit test: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -283,67 +259,102 @@ export function TestSession() {
         </div>
       </div>
 
-      {/* Right Pane - Current Question */}
-      <div className="flex-1 p-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-8">
-            {/* Question Content */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">{execution.testData.questions[currentQuestionIndex].question_text}</h2>
-              <div className="space-y-4">
-                {execution.testData.questions[currentQuestionIndex].options.map((option, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleAnswerSelect(option)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option
-                            ? 'border-indigo-500 bg-indigo-500'
-                            : 'border-gray-300'
-                        }`}
-                      >
-                        {selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option && (
-                          <CheckCircle2 className="h-4 w-4 text-white" />
-                        )}
-                      </div>
-                      <span className="text-gray-900">{option}</span>
-                    </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Question Area */}
+        <div className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="container mx-auto px-4 py-6 max-w-3xl">
+            {/* Question Card */}
+            <div className="bg-white rounded-lg shadow mb-4">
+              {/* Question Text */}
+              <div className="p-6 border-b">
+                <div className="w-full">
+                  <div className="text-lg" style={{
+                    width: '100%',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere',
+                    hyphens: 'auto'
+                  }}>
+                    {renderMathContent(execution.testData.questions[currentQuestionIndex].question_text)}
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Options */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  {execution.testData.questions[currentQuestionIndex].options.map((option, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleAnswerSelect(option)}
+                      className={`rounded-lg border-2 cursor-pointer ${
+                        selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-gray-200 hover:border-indigo-200'
+                      }`}
+                    >
+                      <div className="p-4 flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option
+                              ? 'border-indigo-500 bg-indigo-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id] === option && (
+                              <CheckCircle2 className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-1" style={{
+                          width: '100%',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'pre-wrap',
+                          overflowWrap: 'anywhere',
+                          hyphens: 'auto'
+                        }}>
+                          {renderMathContent(option)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between">
+            {/* Navigation */}
+            <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
               <button
-                onClick={handlePreviousQuestion}
+                onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
-                className="px-4 py-2 flex items-center gap-2 text-gray-600 disabled:opacity-50"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
+                  ${currentQuestionIndex === 0
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" />
                 Previous
               </button>
-              <button
-                onClick={handleNextQuestion}
-                disabled={!selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id]}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {currentQuestionIndex === execution.testData.questions.length - 1 ? (
-                  'Submit Test'
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-5 w-5" />
-                  </>
-                )}
-              </button>
+              {currentQuestionIndex === execution.testData.questions.length - 1 ? (
+                <button
+                  onClick={handleSubmitTest}
+                  disabled={!selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id]}
+                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Submit Test
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  disabled={!selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id]}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
