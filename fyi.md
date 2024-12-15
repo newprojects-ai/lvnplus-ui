@@ -574,3 +574,52 @@ start: async (executionId: number): Promise<TestExecution> => {
 #### Next Steps
 1. Frontend team to integrate start endpoint at appropriate point in user flow
 2. Maintain existing UI/UX while ensuring test is properly started
+
+### 2024-12-15 Test Results Endpoint Fix
+- Updated `/tests/executions/{executionId}/results` endpoint in `testService.ts`
+- Previous endpoint was incorrect, causing blank screen after test submission
+- Corrected API call to fetch test results using the right endpoint
+
+### 2024-12-15 Test Results Interface Update
+- Updated `TestResultsProps` interface in `TestResults.tsx` to match new API response
+- Adjusted component logic to work with new response structure
+- Key changes:
+  * Replaced nested `execution` with top-level fields
+  * Updated `testData` structure
+  * Modified score and question-related calculations
+  * Removed `completed_at` usage
+  * Simplified score and question count references
+
+### 2024-12-15 API Base URL Update
+- Updated API base URL in `testService.ts` to use Vite environment variable
+- Changed from Next.js environment variable to Vite's `import.meta.env`
+- Default base URL changed to `http://localhost:3000`
+- Ensures correct API endpoint is used in Vite/React application
+
+### 2024-12-15 Test Results Service Debugging
+- Enhanced `fetchTestResults` in `testService.ts` with detailed logging
+- Added console logs for:
+  * Execution ID
+  * Full API URL
+  * API Response
+  * Detailed error information
+- Modified return logic to handle potential nested data structure
+- Helps diagnose blank screen and API call issues
+
+### 2024-12-15 TestResults Component Error Handling
+- Added safety check in `TestResults` component
+- Implemented fallback UI for missing test result data
+- Added console logging for test result data
+- Helps diagnose issues with data rendering
+
+### 2024-12-15 Test Results Flow Integration
+- Updated test results flow across multiple components
+- Modified `testsApi` to use new `/tests/executions/{executionId}/results` endpoint
+- Updated `TestResult` interface to match new API response structure
+- Implemented dynamic topic performance calculation
+- Adjusted `TestResults` page to work with new data format
+- Key changes:
+  * Endpoint integration
+  * Type system updates
+  * Metrics computation logic
+- Ensures seamless test results display after test completion

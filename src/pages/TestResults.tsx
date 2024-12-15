@@ -68,6 +68,29 @@ export function TestResults() {
     );
   }
 
+  // Derive additional metrics
+  const accuracy = result ? (result.testData.correctAnswers / result.testData.totalQuestions) * 100 : 0;
+  const timeSpent = result ? Math.floor((new Date().getTime() - new Date(result.startedAt).getTime()) / 60000) : 0;
+
+  // Compute topic performance
+  const topicPerformance = result ? 
+    result.testData.questions.reduce((acc, question) => {
+      const topicId = question.subtopic_id.toString();
+      const response = result.testData.responses.find(r => r.question_id === question.question_id);
+      
+      if (!acc[topicId]) {
+        acc[topicId] = { topicId, correct: 0, total: 0, accuracy: 0 };
+      }
+      
+      acc[topicId].total++;
+      if (response?.is_correct) {
+        acc[topicId].correct++;
+      }
+      
+      return acc;
+    }, {} as Record<string, { topicId: string, correct: number, total: number, accuracy: number }>) 
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-100 py-12">
       <div className="container mx-auto max-w-3xl px-4">
@@ -88,21 +111,21 @@ export function TestResults() {
               <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <h3 className="text-lg font-semibold text-green-800">Score</h3>
               <p className="text-2xl font-bold text-green-600">
-                {result.score} / {result.totalQuestions}
+                {result.testData.correctAnswers} / {result.testData.totalQuestions}
               </p>
             </div>
             <div className="bg-indigo-50 rounded-lg p-4 text-center">
               <BarChart2 className="h-8 w-8 text-indigo-500 mx-auto mb-2" />
               <h3 className="text-lg font-semibold text-indigo-800">Accuracy</h3>
               <p className="text-2xl font-bold text-indigo-600">
-                {(result.accuracy * 100).toFixed(1)}%
+                {accuracy.toFixed(1)}%
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-4 text-center">
               <Clock className="h-8 w-8 text-blue-500 mx-auto mb-2" />
               <h3 className="text-lg font-semibold text-blue-800">Time Spent</h3>
               <p className="text-2xl font-bold text-blue-600">
-                {Math.floor(result.timeSpent / 60)} mins
+                {timeSpent} mins
               </p>
             </div>
           </div>
@@ -114,7 +137,7 @@ export function TestResults() {
               Topic Performance
             </h2>
             <div className="space-y-3">
-              {result.topicPerformance.map(topic => (
+              {Object.values(topicPerformance).map(topic => (
                 <div 
                   key={topic.topicId} 
                   className="bg-white rounded-md p-4 shadow-sm flex items-center"

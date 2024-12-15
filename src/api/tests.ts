@@ -23,8 +23,8 @@ export const testsApi = {
     return response.data;
   },
 
-  getTestResult: async (sessionId: string): Promise<TestResult> => {
-    const response = await apiClient.get<TestResult>(`/tests/results/${sessionId}`);
-    return response.data;
+  getTestResult: async (executionId: string): Promise<TestResult> => {
+    const response = await apiClient.get<TestResult>(`/tests/executions/${executionId}/results`);
+    return response.data.data;
   }
 };

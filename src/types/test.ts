@@ -84,18 +84,29 @@ export interface TestSession {
 }
 
 export interface TestResult {
-  id: string;
-  testSessionId: string;
-  userId: string;
+  executionId: string;
+  testPlanId: string;
+  studentId: string;
+  status: string;
+  startedAt: string;
   score: number;
-  totalQuestions: number;
-  timeSpent: number;
-  completedAt: string;
-  accuracy: number;
-  topicPerformance: {
-    topicId: string;
-    correct: number;
-    total: number;
-    accuracy: number;
-  }[];
+  testData: {
+    totalQuestions: number;
+    correctAnswers: number;
+    questions: {
+      question_id: number;
+      subtopic_id: number;
+      question_text: string;
+      options: string[];
+      difficulty_level: number;
+      correct_answer: string;
+      correct_answer_plain: string;
+    }[];
+    responses: {
+      question_id: number;
+      student_answer: string;
+      is_correct: boolean;
+      time_spent: number;
+    }[];
+  };
 }
