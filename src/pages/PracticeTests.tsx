@@ -25,7 +25,7 @@ export function PracticeTests() {
       icon: <Shuffle className="h-8 w-8" />,
       title: "Mixed",
       description: "Challenge yourself with questions from various topics",
-      path: `/practice/tests/mixed/${subjectId}`,
+      path: `/mixed-test-config`,
       color: "purple"
     },
     {
