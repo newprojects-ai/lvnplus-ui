@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle2, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Flag } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
@@ -16,11 +16,13 @@ export function TestSession() {
   
   const [execution, setExecution] = useState<TestExecutionType | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: string]: string }>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [seenQuestions, setSeenQuestions] = useState<Set<number>>(new Set());
 
   // Validate and parse execution ID
   const validateExecutionId = (id?: string): number | null => {
@@ -97,6 +99,11 @@ export function TestSession() {
     return () => clearInterval(timer);
   }, [timeRemaining]);
 
+  // Track seen questions
+  useEffect(() => {
+    setSeenQuestions(prev => new Set([...prev, currentQuestionIndex]));
+  }, [currentQuestionIndex]);
+
   // Handle answer selection for current question
   const handleAnswerSelect = (answer: string) => {
     if (!execution) return;
@@ -106,6 +113,19 @@ export function TestSession() {
       ...prev,
       [currentQuestion.question_id]: answer
     }));
+  };
+
+  // Toggle flag for current question
+  const toggleQuestionFlag = () => {
+    setFlaggedQuestions(prev => {
+      const newFlags = new Set(prev);
+      if (newFlags.has(currentQuestionIndex)) {
+        newFlags.delete(currentQuestionIndex);
+      } else {
+        newFlags.add(currentQuestionIndex);
+      }
+      return newFlags;
+    });
   };
 
   // Navigate to previous question
@@ -122,6 +142,14 @@ export function TestSession() {
     if (currentQuestionIndex < execution.testData.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
+  };
+
+  // Get question status
+  const getQuestionStatus = (index: number) => {
+    if (selectedAnswers[execution.testData.questions[index].question_id]) return 'answered';
+    if (flaggedQuestions.has(index)) return 'flagged';
+    if (seenQuestions.has(index)) return 'seen';
+    return 'not-seen';
   };
 
   // Handle test submission
@@ -216,9 +244,27 @@ export function TestSession() {
     <div className="flex min-h-screen bg-gray-50">
       {/* Left Pane - Question Navigation */}
       <div className="w-64 bg-white border-r border-gray-200 p-4">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-700">Questions</h2>
-          <p className="text-sm text-gray-500">Total: {execution.testData.questions.length}</p>
+        {/* Progress Summary */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Progress</h2>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="text-xl font-bold">{execution.testData.questions.length}</div>
+              <div className="text-sm text-gray-600">Total</div>
+            </div>
+            <div className="bg-green-50 p-3 rounded-lg">
+              <div className="text-xl font-bold text-green-600">
+                {Object.keys(selectedAnswers).length}
+              </div>
+              <div className="text-sm text-green-600">Answered</div>
+            </div>
+            <div className="bg-red-50 p-3 rounded-lg">
+              <div className="text-xl font-bold text-red-600">
+                {flaggedQuestions.size}
+              </div>
+              <div className="text-sm text-red-600">Flagged</div>
+            </div>
+          </div>
         </div>
         
         {/* Timer */}
@@ -236,26 +282,57 @@ export function TestSession() {
           </div>
         )}
 
-        {/* Question Navigation Buttons */}
-        <div className="grid grid-cols-5 gap-2">
-          {execution.testData.questions.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentQuestionIndex(index)}
-              className={`
-                w-full aspect-square rounded-lg text-sm font-medium
-                ${
-                  currentQuestionIndex === index
-                    ? 'bg-indigo-600 text-white'
-                    : selectedAnswers[execution.testData.questions[index].question_id]
-                    ? 'bg-indigo-100 text-indigo-600 border-2 border-indigo-600'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }
-              `}
-            >
-              {index + 1}
-            </button>
-          ))}
+        {/* Question Groups */}
+        {Array.from({ length: Math.ceil(execution.testData.questions.length / 10) }, (_, i) => {
+          const start = i * 10 + 1;
+          const end = Math.min((i + 1) * 10, execution.testData.questions.length);
+          return (
+            <div key={i} className="mb-6">
+              <h3 className="text-sm text-gray-600 mb-2">Questions {start}-{end}</h3>
+              <div className="grid grid-cols-5 gap-2">
+                {execution.testData.questions.slice(i * 10, (i + 1) * 10).map((_, idx) => {
+                  const questionIndex = i * 10 + idx;
+                  const status = getQuestionStatus(questionIndex);
+                  return (
+                    <button
+                      key={questionIndex}
+                      onClick={() => setCurrentQuestionIndex(questionIndex)}
+                      className={`
+                        w-full aspect-square rounded-lg text-sm font-medium
+                        ${currentQuestionIndex === questionIndex ? 'ring-2 ring-indigo-500' : ''}
+                        ${status === 'answered' ? 'bg-green-100 text-green-700' :
+                          status === 'flagged' ? 'bg-red-100 text-red-700' :
+                          status === 'seen' ? 'bg-yellow-50 text-yellow-700' :
+                          'bg-gray-100 text-gray-600'}
+                      `}
+                    >
+                      {questionIndex + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Legend */}
+        <div className="mt-6 space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-100 rounded"></div>
+            <span>Answered</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-100 rounded"></div>
+            <span>Flagged</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-yellow-50 rounded"></div>
+            <span>Seen</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-100 rounded"></div>
+            <span>Not Seen</span>
+          </div>
         </div>
       </div>
 
@@ -266,6 +343,23 @@ export function TestSession() {
           <div className="container mx-auto px-4 py-6 max-w-3xl">
             {/* Question Card */}
             <div className="bg-white rounded-lg shadow mb-4">
+              {/* Question Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-semibold">Question {currentQuestionIndex + 1}</h2>
+                <button
+                  onClick={toggleQuestionFlag}
+                  className={`p-2 rounded-lg transition-colors ${
+                    flaggedQuestions.has(currentQuestionIndex)
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Flag className={`h-5 w-5 ${
+                    flaggedQuestions.has(currentQuestionIndex) ? 'fill-current' : ''
+                  }`} />
+                </button>
+              </div>
+
               {/* Question Text */}
               <div className="p-6 border-b">
                 <div className="w-full">
@@ -323,33 +417,33 @@ export function TestSession() {
             </div>
 
             {/* Navigation */}
-            <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+            <div className="flex justify-between mt-6">
               <button
                 onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
+                className={`
+                  flex items-center gap-2 px-4 py-2 rounded-lg
                   ${currentQuestionIndex === 0
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}
+                `}
+                disabled={currentQuestionIndex === 0}
               >
                 <ChevronLeft className="h-5 w-5" />
                 Previous
               </button>
+
               {currentQuestionIndex === execution.testData.questions.length - 1 ? (
                 <button
                   onClick={handleSubmitTest}
-                  disabled={!selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id]}
-                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                 >
                   Submit Test
-                  <ArrowRight className="h-5 w-5" />
+                  <CheckCircle2 className="h-5 w-5" />
                 </button>
               ) : (
                 <button
                   onClick={handleNext}
-                  disabled={!selectedAnswers[execution.testData.questions[currentQuestionIndex].question_id]}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                 >
                   Next
                   <ChevronRight className="h-5 w-5" />
