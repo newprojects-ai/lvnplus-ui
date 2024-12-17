@@ -32,7 +32,7 @@ export function PracticeTests() {
       icon: <Brain className="h-8 w-8" />,
       title: "Mental Arithmetic",
       description: "Improve your mental calculation speed and accuracy",
-      path: `/practice/tests/mental/${subjectId}`,
+      path: `/mental-arithmetic-config`,
       color: "green"
     }
   ];

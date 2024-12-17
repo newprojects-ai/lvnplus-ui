@@ -93,4 +93,72 @@ export const testsApi = {
       throw error;
     }
   },
+  createMentalArithmeticTest: async (params: {
+    numberOfQuestions: number;
+    isTimed: boolean;
+  }) => {
+    try {
+      console.log('API Base URL:', API_BASE_URL);
+      
+      // Get user data, verify token if needed
+      let user = getUser();
+      if (!user) {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        user = await verifyToken(token);
+        if (!user) {
+          throw new Error('Failed to verify authentication token');
+        }
+      }
+
+      // Convert user.id to number if it's a string
+      const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+      if (isNaN(userId)) {
+        throw new Error('Invalid user ID');
+      }
+      
+      console.log('Creating mental arithmetic test plan with user ID:', userId);
+      
+      // First create a test plan
+      const testPlan = await apiClient.post('/tests/plans', {
+        templateId: null,
+        boardId: 1,
+        plannedBy: userId,
+        studentId: userId,  // Add studentId for self-test
+        testType: 'MIXED',
+        timingType: params.isTimed ? 'TIMED' : 'UNTIMED',
+        timeLimit: params.isTimed ? 1800 : 0,
+        configuration: {
+          totalQuestionCount: params.numberOfQuestions,
+          topics: [],
+          subtopics: [],
+          difficulty: '0'  // Set difficulty to 0 for mental arithmetic
+        }
+      });
+      console.log('Test plan created:', testPlan.data);
+
+      // Then create an execution
+      const execution = await apiClient.post(`/tests/plans/${testPlan.data.testPlanId}/executions`, {});
+      console.log('Test execution created:', execution.data);
+
+      // Start the execution
+      const startedExecution = await apiClient.post(`/tests/executions/${execution.data.executionId}/start`);
+      console.log('Test execution started:', startedExecution.data);
+
+      return {
+        executionId: execution.data.executionId,
+        ...startedExecution.data
+      };
+    } catch (error) {
+      console.error('Error creating mental arithmetic test:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error;
+    }
+  },
 };

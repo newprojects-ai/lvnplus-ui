@@ -206,6 +206,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/mental-arithmetic-config"
+                element={
+                  <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+                    <MentalArithmeticConfig />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
           <Footer />
