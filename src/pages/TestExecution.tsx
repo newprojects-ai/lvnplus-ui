@@ -17,6 +17,8 @@ export function TestExecution() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [testStartTime, setTestStartTime] = useState<number | null>(null);
+  const [testElapsedTime, setTestElapsedTime] = useState<number>(0);
 
   // Fetch test execution details
   const fetchTestExecution = useCallback(async () => {
@@ -40,6 +42,25 @@ export function TestExecution() {
       setIsLoading(false);
     }
   }, [executionId, user]);
+
+  // Initialize test start time when test starts
+  useEffect(() => {
+    if (execution?.status === 'IN_PROGRESS' && !testStartTime) {
+      setTestStartTime(Date.now());
+    }
+  }, [execution?.status, testStartTime]);
+
+  // Timer effect for test elapsed time
+  useEffect(() => {
+    if (!testStartTime || !execution || execution.status !== 'IN_PROGRESS') return;
+
+    const timer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
+      setTestElapsedTime(elapsed);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [testStartTime, execution?.status]);
 
   // Timer effect
   useEffect(() => {
@@ -91,15 +112,23 @@ export function TestExecution() {
     }
   };
 
-  // Complete the test
+  // Handle test completion
   const handleCompleteTest = async () => {
     if (!execution) return;
 
     try {
-      const completedExecution = await testsApi.executions.complete(execution.executionId);
-      navigate(`/test/results/${completedExecution.executionId}`);
-    } catch (err) {
-      console.error('Failed to complete test:', err);
+      // Calculate final test time
+      const totalTimeTaken = testElapsedTime;
+
+      // Complete the test with timing data
+      await testsApi.executions.complete(execution.executionId, {
+        testTotalTimeTaken: totalTimeTaken
+      });
+
+      // Navigate to results
+      navigate(`/test/results/${execution.executionId}`);
+    } catch (error) {
+      console.error('Failed to complete test:', error);
       setError('Failed to complete test. Please try again.');
     }
   };
@@ -160,35 +189,39 @@ export function TestExecution() {
   const currentQuestion = execution.testData.questions[currentQuestionIndex];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-md p-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={handlePauseResume}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            {execution.status === 'IN_PROGRESS' ? (
-              <Pause className="h-6 w-6" />
-            ) : (
-              <Play className="h-6 w-6" />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Timer */}
+      <header className="bg-white shadow-sm p-4 mb-6">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          {/* Test Timer */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-md">
+              <Clock className="w-5 h-5 text-indigo-600" />
+              <span className="text-lg font-semibold text-indigo-700">
+                {String(Math.floor(testElapsedTime / 60)).padStart(2, '0')}:
+                {String(testElapsedTime % 60).padStart(2, '0')}
+              </span>
+            </div>
+            {timeRemaining > 0 && (
+              <div className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-md">
+                <Clock className="w-5 h-5 text-gray-600" />
+                <span className="text-lg font-semibold text-gray-700">
+                  Time Left: {String(Math.floor(timeRemaining / 60000)).padStart(2, '0')}:
+                  {String(Math.floor((timeRemaining % 60000) / 1000)).padStart(2, '0')}
+                </span>
+              </div>
             )}
-          </button>
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-indigo-500" />
-            <span className="font-medium">
-              {Math.floor(timeRemaining / 60000)}:
-              {String(Math.floor((timeRemaining % 60000) / 1000)).padStart(2, '0')}
-            </span>
           </div>
-        </div>
-        <div className="text-gray-600">
-          Question {currentQuestionIndex + 1} of {execution.testData.questions.length}
+
+          {/* Question Counter */}
+          <div className="text-gray-600">
+            Question {currentQuestionIndex + 1} of {execution?.testData.questions.length}
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-2xl">
+      <main className="max-w-4xl mx-auto px-4 py-6">
         <div className="bg-white rounded-lg shadow-md p-8">
           {/* Question */}
           <div className="mb-6">

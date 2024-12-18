@@ -19,9 +19,10 @@ export const testExecutionsApi = {
     });
   },
 
-  complete: async (executionId: number): Promise<TestExecution> => {
+  complete: async (executionId: number, timingData?: { testTotalTimeTaken: number }): Promise<TestExecution> => {
     const response = await apiClient.post<TestExecution>(
-      `/tests/executions/${executionId}/complete`
+      `/tests/executions/${executionId}/complete`,
+      { timingData }
     );
     return response.data;
   },
