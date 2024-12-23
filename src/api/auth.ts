@@ -34,17 +34,22 @@ export const authApi = {
   login: async (data: LoginData): Promise<LoginResponse> => {
     // Validate input
     const validatedData = loginSchema.parse(data);
-    
+
     try {
       const response = await apiClient.post<{
         token: string;
         user: User;
       }>('/auth/login', validatedData);
-      
+
+      // Verify if user has the selected role
+      if (!response.data.user.roles.includes(data.role)) {
+        throw new Error(`You do not have ${data.role} access. Please select a different role.`);
+      }
+
       if (response.data.token) {
         setAuthToken(response.data.token);
       }
-      
+
       return response.data;
     } catch (error) {
       console.error('Login error:', error);

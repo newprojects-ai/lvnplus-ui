@@ -31,6 +31,8 @@ export function LoginForm() {
         setError('Please check your email and password format');
       } else if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || 'Invalid email or password');
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
