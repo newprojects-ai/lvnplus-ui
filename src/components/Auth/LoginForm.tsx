@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { LogIn, UserCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ZodError } from 'zod';
 import axios from 'axios';
+import { Role } from '../../types/auth';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<Role>('Student');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
+      await login({ email, password, role: selectedRole });
       const intendedPath = location.state?.from?.pathname || '/';
       navigate(intendedPath, { replace: true });
     } catch (err) {
@@ -51,6 +53,27 @@ export function LoginForm() {
               create a new account
             </Link>
           </p>
+        </div>
+
+        {/* Role Selection */}
+        <div className="flex justify-center space-x-4 mb-8">
+          {['Student', 'Parent', 'Tutor', 'Admin'].map((role) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => setSelectedRole(role as Role)}
+              className={`flex flex-col items-center p-4 rounded-lg transition-all ${
+                selectedRole === role
+                  ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                  : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-indigo-200'
+              }`}
+            >
+              <UserCircle className={`h-6 w-6 mb-2 ${
+                selectedRole === role ? 'text-indigo-500' : 'text-gray-400'
+              }`} />
+              <span className="text-sm font-medium">{role}</span>
+            </button>
+          ))}
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -108,10 +131,10 @@ export function LoginForm() {
               {isLoading ? (
                 'Signing in...'
               ) : (
-                <>
-                  Sign in
+                <div className="flex items-center justify-center">
+                  Sign in as {selectedRole}
                   <LogIn className="ml-2 -mr-1 h-4 w-4" />
-                </>
+                </div>
               )}
             </button>
           </div>
