@@ -10,15 +10,10 @@ import {
 
 interface AuthContextType {
   user: User | null;
-  login: (credentials: LoginData) => Promise<void>;
+  login: (credentials: { email: string; password: string; role: Role }) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,14 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, []);
 
-  const login = useCallback(async (credentials: LoginData) => {
+  const login = useCallback(async (credentials: { email: string; password: string; role: Role }) => {
     setIsLoading(true);
     try {
+      // Single API call with role validation
       const response = await authApi.login(credentials);
       console.log('Login Full Response:', response);
-      
-      // Ensure token is set first
-      setAuthToken(response.token);
       
       // Verify the token to extract user data
       const userData = await verifyToken(response.token);

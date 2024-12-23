@@ -77,10 +77,10 @@ apiClient.interceptors.response.use(
       // Handle specific HTTP status codes
       switch (error.response.status) {
         case 401:
-          error.message = 'Invalid credentials';
+          error.message = error.response.data?.message || 'Invalid credentials or insufficient privileges';
           break;
         case 403:
-          error.message = 'Access denied';
+          error.message = error.response.data?.message || 'Access denied. Insufficient privileges';
           break;
         case 404:
           error.message = 'Resource not found';

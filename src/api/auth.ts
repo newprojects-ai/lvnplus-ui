@@ -3,7 +3,6 @@ import { LoginResponse, RegisterResponse, RegisterData, LoginData, User } from '
 import { z } from 'zod';
 import { setAuthToken } from '../utils/auth';
 
-// Validation schemas
 const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -14,7 +13,8 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Password is required'), 
+  role: z.enum(['Student', 'Parent', 'Tutor', 'Admin'])
 });
 
 export const authApi = {
@@ -34,22 +34,14 @@ export const authApi = {
   login: async (data: LoginData): Promise<LoginResponse> => {
     // Validate input
     const validatedData = loginSchema.parse(data);
-
+    
     try {
-      const response = await apiClient.post<{
-        token: string;
-        user: User;
-      }>('/auth/login', validatedData);
-
-      // Verify if user has the selected role
-      if (!response.data.user.roles.includes(data.role)) {
-        throw new Error(`You do not have ${data.role} access. Please select a different role.`);
-      }
+      const response = await apiClient.post<LoginResponse>('/auth/login', validatedData);
 
       if (response.data.token) {
         setAuthToken(response.data.token);
       }
-
+      
       return response.data;
     } catch (error) {
       console.error('Login error:', error);
