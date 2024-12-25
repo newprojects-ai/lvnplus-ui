@@ -24,13 +24,12 @@ export function LoginForm() {
 
     try {
       await login({ email, password, role });
-      const intendedPath = location.state?.from?.pathname || '/';
       
       // Redirect based on role
       if (role === 'Parent') {
         navigate('/parent', { replace: true });
       } else {
-        navigate(intendedPath, { replace: true });
+        navigate(location.state?.from?.pathname || '/', { replace: true });
       }
     } catch (err) {
       console.error('Login error:', err);

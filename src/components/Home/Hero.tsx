@@ -10,29 +10,23 @@ export function Hero() {
   const features = [
     {
       icon: <Calculator className="h-8 w-8 text-indigo-600" />, 
-      title: user?.roles.includes('Parent') ? "Manage Children" : "Start Learning",
-      description: user?.roles.includes('Parent') 
-        ? "Manage your children's profiles and monitor their progress"
-        : "Choose from Mathematics and English subjects to begin your learning journey.",
-      link: user?.roles.includes('Parent') ? "/parent" : "/subjects",
+      title: "Start Learning",
+      description: "Choose from Mathematics and English subjects to begin your learning journey.",
+      link: "/subjects",
       allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     },
     {
       icon: <PenTool className="h-8 w-8 text-indigo-600" />,
-      title: user?.roles.includes('Parent') ? "Schedule Tests" : "Practice Tests",
-      description: user?.roles.includes('Parent')
-        ? "Schedule and manage your children's assessments"
-        : "Strengthen your skills with targeted quizzes and comprehensive assessments.",
-      link: user?.roles.includes('Parent') ? "/parent/scheduler" : "/practice-tests",
+      title: "Practice Tests",
+      description: "Strengthen your skills with targeted quizzes and comprehensive assessments.",
+      link: "/practice-tests",
       allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     },
     {
       icon: <LineChart className="h-8 w-8 text-indigo-600" />,
-      title: user?.roles.includes('Parent') ? "View Progress" : "Progress Tracking",
-      description: user?.roles.includes('Parent')
-        ? "Track your children's performance and improvement"
-        : "Monitor your improvement with detailed performance analytics.",
-      link: user?.roles.includes('Parent') ? "/parent/performance" : "/progress",
+      title: "Progress Tracking",
+      description: "Monitor your improvement with detailed performance analytics.",
+      link: "/progress",
       allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     }
   ];
@@ -71,10 +65,10 @@ export function Hero() {
           ) : user?.roles.includes('Student') && (
             <div className="mt-5 sm:mt-8 flex justify-center">
               <Link
-                to="/subjects"
+                to={user?.roles.includes('Parent') ? "/parent" : "/subjects"}
                 className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg md:px-10"
               >
-                Start Learning
+                {user?.roles.includes('Parent') ? "Parent Dashboard" : "Start Learning"}
               </Link>
             </div>
           )}
