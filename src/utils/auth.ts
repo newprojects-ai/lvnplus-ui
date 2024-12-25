@@ -35,8 +35,6 @@ export const setUser = (user: User): void => {
 export const verifyToken = async (token: string): Promise<User | null> => {
   try {
     console.log('Verifying Token:', token);
-    
-    // Dynamically import jwt-decode
     const jwtDecode = await import('jwt-decode');
     
     const decoded = jwtDecode.default<{
@@ -44,7 +42,7 @@ export const verifyToken = async (token: string): Promise<User | null> => {
       userId?: string | number;  // Alternative user ID field
       id?: string | number;  // Another potential user ID field
       email: string;
-      roles?: string[];
+      role?: string;
       firstName?: string;
       lastName?: string;
       exp?: number;
@@ -60,7 +58,6 @@ export const verifyToken = async (token: string): Promise<User | null> => {
       return null;
     }
     
-    // Extract user ID from multiple possible fields
     const userId = 
       decoded.sub || 
       decoded.userId || 
@@ -71,12 +68,15 @@ export const verifyToken = async (token: string): Promise<User | null> => {
       return null;
     }
     
+    // Convert role to uppercase for consistency
+    const role = decoded.role?.toUpperCase() || '';
+    
     const userData: User = {
       id: userId,
       email: decoded.email,
       firstName: decoded.firstName || '',
       lastName: decoded.lastName || '',
-      roles: decoded.roles || []
+      roles: role ? [role] : []
     };
     
     console.log('Verified User Data:', JSON.stringify(userData, null, 2));

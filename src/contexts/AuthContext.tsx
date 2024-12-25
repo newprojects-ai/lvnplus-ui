@@ -47,20 +47,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (credentials: { email: string; password: string; role: Role }) => {
     setIsLoading(true);
     try {
-      // Single API call with role validation
+      console.log('Login attempt with role:', credentials.role);
       const response = await authApi.login(credentials);
-      console.log('Login Full Response:', response);
+      console.log('Login response:', response);
       
-      // Verify the token to extract user data
-      const userData = await verifyToken(response.token);
+      // Ensure role is included in user data
+      const userData: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        roles: [credentials.role]
+      };
       
-      if (!userData) {
-        console.error('Failed to extract user data from token');
-        removeAuthToken();
-        throw new Error('Invalid user data');
-      }
-      
-      console.log('Extracted User Data:', userData);
+      console.log('Setting user data:', userData);
+      setAuthToken(response.token);
       setUser(userData);
     } catch (error) {
       console.error('Login Error:', error);
