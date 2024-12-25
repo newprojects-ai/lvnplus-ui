@@ -15,7 +15,7 @@ export function Hero() {
         ? "Manage your children's profiles and monitor their progress"
         : "Choose from Mathematics and English subjects to begin your learning journey.",
       link: user?.roles.includes('Parent') ? "/parent" : "/subjects",
-      allowedRoles: ['Student', 'Tutor', 'Admin']
+      allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     },
     {
       icon: <PenTool className="h-8 w-8 text-indigo-600" />,
@@ -24,7 +24,7 @@ export function Hero() {
         ? "Schedule and manage your children's assessments"
         : "Strengthen your skills with targeted quizzes and comprehensive assessments.",
       link: user?.roles.includes('Parent') ? "/parent/scheduler" : "/practice-tests",
-      allowedRoles: ['Student', 'Tutor', 'Admin']
+      allowedRoles: ['Student', 'Parent', 'Tutor', 'Admin']
     },
     {
       icon: <LineChart className="h-8 w-8 text-indigo-600" />,
