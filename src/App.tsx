@@ -10,6 +10,7 @@ import { English } from './pages/English';
 import { Progress } from './pages/Progress';
 import { TestPage } from './pages/TestPage';
 import { LoginForm } from './components/Auth/LoginForm';
+import { ParentPortal } from './pages/ParentPortal';
 import { RegisterForm } from './components/Auth/RegisterForm';
 import { Unauthorized } from './pages/Unauthorized';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
@@ -42,6 +43,14 @@ function App() {
               />
               <Route path="/register" element={<RegisterForm />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route
+                path="/parent/*"
+                element={
+                  <ProtectedRoute allowedRoles={['Parent']}>
+                    <ParentPortal />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/mathematics"
                 element={

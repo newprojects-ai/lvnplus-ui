@@ -20,11 +20,18 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    const role = selectedRole;
 
     try {
-      await login({ email, password, role: selectedRole });
+      await login({ email, password, role });
       const intendedPath = location.state?.from?.pathname || '/';
-      navigate(intendedPath, { replace: true });
+      
+      // Redirect based on role
+      if (role === 'Parent') {
+        navigate('/parent', { replace: true });
+      } else {
+        navigate(intendedPath, { replace: true });
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (err instanceof ZodError) {
