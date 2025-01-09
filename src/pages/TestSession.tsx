@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle2, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Flag } from 'lucide-react';
+import { useGamification } from '../contexts/GamificationContext';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
@@ -12,6 +13,7 @@ import 'katex/dist/katex.min.css';
 export function TestSession() {
   const { executionId } = useParams<{ executionId: string }>();
   const navigate = useNavigate();
+  const { addXP, updateStreak, checkAchievements } = useGamification();
   const { user } = useAuth();
   
   const [execution, setExecution] = useState<TestExecutionType | null>(null);
@@ -293,6 +295,17 @@ export function TestSession() {
           }
         }
       );
+
+      // Award XP based on performance
+      const correctAnswers = answersPayload.responses.filter(r => r.answer === r.correctAnswer).length;
+      const accuracy = correctAnswers / answersPayload.responses.length;
+      const baseXP = 100; // Base XP for completing a test
+      const accuracyBonus = Math.round(accuracy * 100); // Up to 100 bonus XP for accuracy
+      const timeBonus = Math.max(0, 50 - Math.floor(testElapsedTime / 60)); // Up to 50 bonus XP for speed
+      
+      addXP(baseXP + accuracyBonus + timeBonus);
+      updateStreak();
+      checkAchievements();
 
       // Navigate to results
       navigate(`/test/results/${executionId}`);
