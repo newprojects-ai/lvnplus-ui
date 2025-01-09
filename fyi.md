@@ -663,10 +663,16 @@ start: async (executionId: number): Promise<TestExecution> => {
    - Set `max-w-full` and `overflow-hidden` for container bounds
 
 2. Text Wrapping Improvements:
-   - Changed from `whitespace-pre-wrap` to `whitespace-normal`
-   - Added `flex-1` to option text container
-   - Improved text wrapping with `break-words`
-   - Removed overflow restrictions
+   ```css
+   width: '100%',
+   wordBreak: 'break-word',
+   whiteSpace: 'pre-wrap',
+   overflowWrap: 'anywhere',
+   hyphens: 'auto'
+   ```
+   - Added `overflowWrap: 'anywhere'` for better wrapping
+   - Simplified container structure
+   - Removed conflicting styles
 
 3. Responsive Design:
    - Added mobile-friendly padding
@@ -699,10 +705,16 @@ start: async (executionId: number): Promise<TestExecution> => {
    - Improved question container layout
 
 2. Text Wrapping Improvements:
-   - Changed from `whitespace-pre-wrap` to `whitespace-normal`
-   - Added `flex-1` to option text container
-   - Improved text wrapping with `break-words`
-   - Removed overflow restrictions
+   ```css
+   width: '100%',
+   wordBreak: 'break-word',
+   whiteSpace: 'pre-wrap',
+   overflowWrap: 'anywhere',
+   hyphens: 'auto'
+   ```
+   - Added `overflowWrap: 'anywhere'` for better wrapping
+   - Simplified container structure
+   - Removed conflicting styles
 
 3. Responsive Design:
    - Added mobile-friendly padding
@@ -775,12 +787,12 @@ start: async (executionId: number): Promise<TestExecution> => {
 
 #### Changes Made
 1. Text Wrapping:
+   ```css
+   overflowWrap: 'break-word'
+   wordBreak: 'break-word'
+   maxWidth: '100%'
+   ```
    - Added explicit CSS styles for text wrapping:
-     ```css
-     overflowWrap: 'break-word'
-     wordBreak: 'break-word'
-     maxWidth: '100%'
-     ```
    - Applied at both container and content levels
    - Removed conflicting styles
    - Ensured proper content flow
@@ -825,15 +837,17 @@ start: async (executionId: number): Promise<TestExecution> => {
 
 2. Text Wrapping Solution:
    ```css
+   width: '100%',
    maxWidth: '100%',
    wordBreak: 'break-word',
    whiteSpace: 'pre-wrap',
-   wordWrap: 'break-word',
-   display: 'block'
+   overflowWrap: 'anywhere',
+   hyphens: 'auto'
    ```
    - Combined multiple word-breaking properties
-   - Added block display for proper width calculation
-   - Applied to both questions and options
+   - Added `overflowWrap: 'anywhere'` for better wrapping
+   - Simplified container structure
+   - Removed conflicting styles
 
 3. Navigation Placement:
    - Moved navigation into main content area
@@ -875,11 +889,11 @@ start: async (executionId: number): Promise<TestExecution> => {
 
 2. Enhanced Text Wrapping:
    ```css
-   maxWidth: '100%',
+   width: '100%',
    wordBreak: 'break-word',
    whiteSpace: 'pre-wrap',
-   wordWrap: 'break-word',
-   display: 'block'
+   overflowWrap: 'anywhere',
+   hyphens: 'auto'
    ```
    - Combined multiple word-breaking properties
    - Added block display for proper width calculation
@@ -1107,3 +1121,673 @@ start: async (executionId: number): Promise<TestExecution> => {
 - Verified timer continues counting up
 - Confirmed time storage on test completion
 - Tested timer visibility across different screen sizes
+
+## Session Updates - 2024-12-30
+
+### React Native Mobile App Requirements Analysis
+Time: 2024-12-30 13:10:32Z
+
+#### Context
+- Analyzed web application codebase to identify features for mobile adaptation
+- Focus on maintaining core functionality while optimizing for mobile experience
+
+#### Core Features to be Implemented
+
+1. Authentication System
+   - User login/logout functionality
+   - Token-based authentication
+   - Session management
+   - Secure storage of credentials
+
+2. Test Taking System
+   - Test execution with timer functionality
+   - Multiple choice questions support
+   - Question navigation
+   - Progress tracking
+   - Question flagging system
+   - Time tracking per question
+
+3. Test Results and Progress
+   - Detailed test results view
+   - Score calculation
+   - Performance metrics
+   - Progress tracking over time
+
+4. Test Configuration
+   - Subject selection
+   - Test type selection (Mixed, Mental Arithmetic)
+   - Question count configuration
+   - Time limit settings
+
+#### Mobile-Specific Requirements
+
+1. UI/UX Adaptations
+   - Touch-friendly interface
+   - Mobile-optimized navigation
+   - Responsive layouts for different screen sizes
+   - Native scrolling and gestures
+   - Portrait and landscape orientation support
+
+2. Performance Considerations
+   - Offline capability for test taking
+   - Efficient state management
+   - Optimized network requests
+   - Local storage for test progress
+
+3. Mobile-Specific Features
+   - Push notifications for test reminders
+   - Progress sharing capabilities
+   - Quick resume functionality
+   - Native back button handling
+
+4. Technical Requirements
+   - React Native navigation system
+   - Mobile-optimized state management
+   - Secure local storage
+   - API integration with existing backend
+   - Math content rendering (KaTeX) for mobile
+
+### User Journey Analysis
+Time: 2024-12-30 13:16:12Z
+
+#### Core User Journey
+
+1. Initial Access & Authentication
+   - User opens application
+   - Logs in with credentials
+   - Authentication token is stored for session
+
+2. Test Selection & Configuration
+   - User navigates to test section
+   - Chooses test type:
+     * Mixed Test
+     * Mental Arithmetic
+     * Practice Tests
+     * Topic Tests
+   - Configures test parameters:
+     * Number of questions
+     * Time limits (timed/untimed)
+     * Subject/topic selection
+
+3. Test Execution
+   - Test begins with timer initialization
+   - For each question:
+     * Views question content
+     * Can flag questions for review
+     * Selects answer
+     * Time spent per question is tracked
+   - Navigation options:
+     * Move to next/previous questions
+     * Jump to specific questions
+     * View progress summary
+
+4. Test Completion
+   - Submit all answers
+   - Total time taken is recorded
+   - Individual question timing data saved
+   - Redirected to results page
+
+5. Results Review
+   - Views overall score
+   - Sees detailed performance metrics
+   - Can analyze time spent per question
+   - Option to review incorrect answers
+   - Access to performance history
+
+6. Progress Tracking
+   - Views historical test results
+   - Tracks improvement over time
+   - Analyzes performance patterns
+   - Identifies areas for improvement
+
+### Authentication Flow Analysis
+Time: 2024-12-30 13:28:05Z
+
+#### Authentication API Endpoints
+
+1. Registration Endpoint
+   ```
+   POST /auth/register
+   ```
+   - Request Body (RegisterData):
+     ```typescript
+     {
+       email: string,
+       password: string,
+       firstName: string,
+       lastName: string,
+       role: string,
+       parentId?: string  // Optional, for student accounts
+     }
+     ```
+   - Response (RegisterResponse):
+     ```typescript
+     {
+       user: {
+         id: string,
+         email: string,
+         firstName: string,
+         lastName: string,
+         roles: Role[]
+       },
+       token: string
+     }
+     ```
+
+2. Login Endpoint
+   ```
+   POST /auth/login
+   ```
+   - Request Body (LoginData):
+     ```typescript
+     {
+       email: string,
+       password: string,
+       role: string
+     }
+     ```
+   - Response (AuthResponse):
+     ```typescript
+     {
+       user: {
+         id: string,
+         email: string,
+         firstName: string,
+         lastName: string,
+         roles: Role[]
+       },
+       token: string
+     }
+     ```
+
+3. Logout Endpoint
+   ```
+   POST /auth/logout
+   ```
+   - No request body required
+   - No response body
+
+#### Authentication Flow
+
+1. Initial App Launch
+   - Check for existing auth token in secure storage
+   - If token exists:
+     * Validate token
+     * Auto-login if valid
+   - If no token or invalid:
+     * Redirect to login screen
+
+2. Registration Process
+   - User fills registration form
+   - Input validation:
+     * Email format validation
+     * Password minimum length (8 characters)
+     * Required fields check
+   - API call to /auth/register
+   - On success:
+     * Store auth token securely
+     * Store user data in app state
+     * Redirect to main app
+
+3. Login Process
+   - User enters credentials
+   - Input validation:
+     * Email format check
+     * Required fields validation
+   - API call to /auth/login
+   - On success:
+     * Store auth token securely
+     * Store user data in app state
+     * Redirect to main app
+
+4. Session Management
+   - Token storage:
+     * Use secure storage (e.g., EncryptedStorage for React Native)
+     * Include token in all API requests
+   - Session handling:
+     * Auto-logout on token expiry
+     * Refresh token mechanism
+     * Background token validation
+
+5. Logout Process
+   - User initiates logout
+   - API call to /auth/logout
+   - Clear local storage:
+     * Remove auth token
+     * Clear user data
+     * Reset app state
+   - Redirect to login screen
+
+#### Mobile-Specific Considerations
+
+1. Secure Storage
+   - Use React Native's EncryptedStorage for tokens
+   - Implement biometric authentication option
+   - Handle app background/foreground transitions
+
+2. Offline Support
+   - Cache user data for offline access
+   - Queue authentication requests when offline
+   - Sync on reconnection
+
+3. UX Optimizations
+   - Remember email option
+   - Biometric login integration
+   - Auto-fill support
+   - Social login integration (future enhancement)
+
+4. Security Measures
+   - Certificate pinning
+   - Implement rate limiting
+   - Detect jailbreak/root
+   - Implement app timeout
+   - Clear clipboard on background
+
+#### Error Handling
+
+1. Network Errors
+   - Retry mechanism
+   - Offline mode handling
+   - User-friendly error messages
+
+2. Authentication Errors
+   - Invalid credentials
+   - Account lockout
+   - Session expiry
+   - Token refresh failures
+
+3. Validation Errors
+   - Field-specific error messages
+   - Real-time validation
+   - Form submission prevention
+
+### Test Configuration Flow Analysis
+Time: 2024-12-30 19:34:48Z
+
+#### Test Configuration API Endpoints
+
+1. Test Plans API
+   ```
+   POST /tests/plans
+   ```
+   - Request Body (TestPlan):
+     ```typescript
+     {
+       boardId: number,
+       testType: 'TOPIC' | 'MIXED' | 'MENTAL_ARITHMETIC',
+       timingType: 'TIMED' | 'UNTIMED',
+       timeLimit?: number,
+       studentId: number,
+       plannedBy: number,
+       configuration: {
+         topics: number[],
+         subtopics: number[],
+         totalQuestionCount: number
+       }
+     }
+     ```
+
+2. Test Session Creation
+   ```
+   POST /tests/plans/{testPlanId}/executions
+   ```
+   - Creates a new test execution from a test plan
+   - Returns TestExecution object with questions and initial state
+
+3. Test Topics API
+   ```
+   GET /tests/topics
+   ```
+   - Returns available topics and subtopics for test configuration
+
+#### Test Configuration Flow
+
+1. Initial Configuration Selection
+   - User selects test type:
+     * TOPIC: Subject-specific tests
+     * MIXED: Multi-subject tests
+     * MENTAL_ARITHMETIC: Specialized arithmetic tests
+   - Each type has specific configuration options
+
+2. Test Parameters Setup
+   - Time configuration:
+     * Choose between timed/untimed
+     * Set time limit if timed
+   - Question configuration:
+     * Select topics/subtopics
+     * Set question count
+     * Configure difficulty levels
+
+3. Topic Selection Process
+   - Fetch available topics
+   - Allow multi-topic selection
+   - Select specific subtopics
+   - Validate topic/subtopic combinations
+
+4. Test Plan Creation
+   - Create test plan with configuration
+   - Validate parameters
+   - Generate question set
+   - Initialize test session
+
+#### Mobile-Specific UI/UX Requirements
+
+1. Configuration Screens
+   - Step-by-step configuration wizard
+   - Topic selection with hierarchical view
+   - Time limit selector with preset options
+   - Question count slider/input
+
+2. Topic Selection Interface
+   - Expandable topic list
+   - Multi-select capability
+   - Search/filter functionality
+   - Topic preview capability
+
+3. Parameter Input Controls
+   - Touch-friendly sliders
+   - Dropdown selections
+   - Toggle switches
+   - Number input spinners
+
+4. Configuration Preview
+   - Summary view
+   - Quick edit options
+   - Save configuration template
+   - Start test button
+
+#### Data Models
+
+1. TestConfig Interface
+   ```typescript
+   interface TestConfig {
+     id?: string;
+     userId: string;
+     testType: TestType;
+     isTimed: boolean;
+     selectedTopics: string[];
+     selectedSubtopics: string[];
+     questionCount: number;
+     timeLimit?: number;
+     createdAt?: string;
+   }
+   ```
+
+2. TestPlan Interface
+   ```typescript
+   interface TestPlan {
+     testPlanId?: number;
+     templateId?: number | null;
+     boardId: number;
+     testType: TestType;
+     timingType: 'TIMED' | 'UNTIMED';
+     timeLimit?: number;
+     studentId: number;
+     plannedBy: number;
+     plannedAt?: string;
+     configuration: {
+       topics: number[];
+       subtopics: number[];
+       totalQuestionCount: number;
+     };
+   }
+   ```
+
+#### Error Handling
+
+1. Configuration Validation
+   - Topic/subtopic compatibility
+   - Time limit constraints
+   - Question count validation
+   - Student eligibility check
+
+2. API Error Handling
+   - Network connectivity issues
+   - Invalid parameter combinations
+   - Server-side validation errors
+   - Timeout handling
+
+3. User Input Validation
+   - Real-time parameter validation
+   - Input format verification
+   - Range checking
+   - Required field validation
+
+#### State Management
+
+1. Configuration State
+   - Track selected options
+   - Maintain valid combinations
+   - Handle partial configurations
+   - Support configuration templates
+
+2. API Integration
+   - Cache topic/subtopic data
+   - Optimize network requests
+   - Handle offline scenarios
+   - Sync with backend
+
+This analysis provides a comprehensive view of the test configuration journey, focusing on NativeScript-specific implementation details and mobile optimization requirements.
+
+### Test Configuration APIs Analysis
+Time: 2024-12-30 19:44:32Z
+
+#### API Structure Overview
+
+The test configuration journey utilizes three main API modules:
+1. Test Plans API (`testPlansApi`)
+2. Test Executions API (`testExecutionsApi`)
+3. Tests API (`testsApi`)
+
+#### 1. Test Plans API (`/tests/plans`)
+
+1. Create Test Plan
+   ```typescript
+   POST /tests/plans
+   ```
+   - Purpose: Create a new test plan with configuration
+   - Request Body: `Partial<TestPlan>`
+   - Response: `TestPlan`
+   - Headers:
+     * Content-Type: application/json
+     * Authorization: Bearer token
+   - Validation:
+     * Requires studentId
+     * Validates test configuration
+
+2. Get Test Plan
+   ```typescript
+   GET /tests/plans/{planId}
+   ```
+   - Purpose: Retrieve existing test plan details
+   - Parameters: planId (number)
+   - Response: `TestPlan`
+   - Headers:
+     * Authorization: Bearer token
+
+3. Update Test Plan
+   ```typescript
+   PATCH /tests/plans/{planId}
+   ```
+   - Purpose: Modify existing test plan
+   - Parameters: planId (number)
+   - Request Body: `Partial<TestPlan>`
+   - Response: `TestPlan`
+   - Headers:
+     * Content-Type: application/json
+     * Authorization: Bearer token
+
+4. Delete Test Plan
+   ```typescript
+   DELETE /tests/plans/{planId}
+   ```
+   - Purpose: Remove test plan
+   - Parameters: planId (number)
+   - Response: void
+
+#### 2. Test Executions API (`/tests/executions`)
+
+1. Create Execution
+   ```typescript
+   POST /tests/plans/{testPlanId}/executions
+   ```
+   - Purpose: Initialize test execution from plan
+   - Parameters: testPlanId (number)
+   - Response: `TestExecution`
+   - Creates question set and initial state
+
+2. Start Execution
+   ```typescript
+   POST /tests/executions/{executionId}/start
+   ```
+   - Purpose: Begin test execution
+   - Parameters: executionId (number)
+   - Response: `TestExecution`
+   - Initializes timer and state
+
+3. Pause Execution
+   ```typescript
+   POST /tests/executions/{executionId}/pause
+   ```
+   - Purpose: Pause ongoing test
+   - Parameters: executionId (number)
+   - Response: `TestExecution`
+   - Saves current state
+
+4. Resume Execution
+   ```typescript
+   POST /tests/executions/{executionId}/resume
+   ```
+   - Purpose: Resume paused test
+   - Parameters: executionId (number)
+   - Response: `TestExecution`
+   - Restores state and timer
+
+#### 3. Tests API (`/tests`)
+
+1. Get Topics
+   ```typescript
+   GET /topics
+   ```
+   - Purpose: Fetch available topics
+   - Response: `Topic[]`
+   - Structure:
+     ```typescript
+     interface Topic {
+       id: string;
+       name: string;
+       subtopics: Subtopic[];
+     }
+     ```
+
+2. Get Questions
+   ```typescript
+   GET /questions
+   ```
+   - Purpose: Fetch questions by topics
+   - Query Parameters:
+     * topicIds: string[]
+     * subtopicIds: string[]
+     * count: number
+   - Response: `Question[]`
+
+3. Get Test Result
+   ```typescript
+   GET /tests/executions/{executionId}/results
+   ```
+   - Purpose: Fetch test results
+   - Parameters: executionId (string)
+   - Response: `TestResult`
+
+#### API Response Types
+
+1. TestPlan Response
+   ```typescript
+   interface TestPlan {
+     testPlanId?: number;
+     templateId?: number | null;
+     boardId: number;
+     testType: TestType;
+     timingType: 'TIMED' | 'UNTIMED';
+     timeLimit?: number;
+     studentId: number;
+     plannedBy: number;
+     plannedAt?: string;
+     configuration: {
+       topics: number[];
+       subtopics: number[];
+       totalQuestionCount: number;
+     };
+   }
+   ```
+
+2. TestExecution Response
+   ```typescript
+   interface TestExecution {
+     executionId: string;
+     testPlanId: string;
+     status: TestStatus;
+     startedAt: string | null;
+     completedAt: string | null;
+     score: number | null;
+     testData: {
+       questions: Question[];
+       responses: TestResponse[];
+     };
+   }
+   ```
+
+#### Error Handling
+
+1. HTTP Status Codes
+   - 400: Invalid request parameters
+   - 401: Unauthorized access
+   - 403: Forbidden operation
+   - 404: Resource not found
+   - 500: Server error
+
+2. Error Response Format
+   ```typescript
+   interface ApiError {
+     message: string;
+     errors?: Record<string, string[]>;
+   }
+   ```
+
+3. Error Categories
+   - Validation errors
+   - Authentication errors
+   - Authorization errors
+   - Server errors
+   - Network errors
+
+#### Mobile Implementation Considerations
+
+1. API Client Setup
+   ```typescript
+   // Using axios with interceptors
+   const apiClient = axios.create({
+     baseURL: API_BASE_URL,
+     timeout: 30000,
+     headers: {
+       'Content-Type': 'application/json'
+     }
+   });
+   ```
+
+2. Authentication
+   - Token management
+   - Auto-refresh mechanism
+   - Secure storage
+
+3. Offline Support
+   - Request queueing
+   - Response caching
+   - Sync strategies
+
+4. Error Handling
+   - Retry logic
+   - Offline fallback
+   - User feedback
+
+This API documentation follows NativeScript best practices and includes all necessary endpoints for implementing the test configuration journey in the mobile app.
