@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { GamificationProvider } from './contexts/GamificationContext';
 import { Header } from './components/Layout/Header';
 import { Footer } from './components/Layout/Footer';
 import { SubjectSelection } from './pages/SubjectSelection';
@@ -26,6 +27,7 @@ import MixedTestConfig from './pages/MixedTestConfig';
 function App() {
   return (
     <AuthProvider>
+      <GamificationProvider>
       <Router>
         <div className="flex flex-col min-h-screen">
           <Header />
@@ -228,6 +230,7 @@ function App() {
           <Footer />
         </div>
       </Router>
+      </GamificationProvider>
     </AuthProvider>
   );
 }

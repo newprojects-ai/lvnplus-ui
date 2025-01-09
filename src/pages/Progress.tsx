@@ -1,5 +1,8 @@
 import React from 'react';
 import { LineChart, Trophy, Target } from 'lucide-react';
+import { LevelProgress } from '../components/Gamification/LevelProgress';
+import { StreakTracker } from '../components/Gamification/StreakTracker';
+import { AchievementCard } from '../components/Gamification/AchievementCard';
 
 export function Progress() {
   const mockProgress = {
@@ -26,6 +29,22 @@ export function Progress() {
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-900">My Progress</h1>
         <p className="mt-2 text-lg text-gray-600">Track your learning journey</p>
+        
+        {/* Gamification Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-4xl mx-auto">
+          <LevelProgress />
+          <StreakTracker />
+        </div>
+      </div>
+
+      {/* Achievements Section */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Achievements</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {achievements.map((achievement) => (
+            <AchievementCard key={achievement.id} achievement={achievement} />
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
