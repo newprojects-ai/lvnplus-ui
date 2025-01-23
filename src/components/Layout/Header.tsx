@@ -2,12 +2,14 @@ import React from 'react';
 import { BookOpen, Home, LogOut, Trophy, Star, Flame } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useGamification } from '../../contexts/GamificationContext';
 import { Role } from '../../types/auth';
 
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
+  const { studentProgress } = useGamification();
   
   const handleLogout = async () => {
     try {
