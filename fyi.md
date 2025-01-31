@@ -2408,8 +2408,9 @@ This API documentation follows NativeScript best practices and includes all nece
 ### Testing
 - Test login with different user roles
 - Verify all non-parent users are directed to home page after login
-- Complete a test and verify the "Back to Home" button works correctly
-- Check that navigation flow feels natural and intuitive
+- Complete a test and verify navigation
+- Check all navigation paths work as expected
+- Verify navigation flow feels natural and intuitive
 
 ## 2025-01-31 15:11:24Z - Reverted UI Changes and Fixed Navigation
 
@@ -2513,3 +2514,30 @@ This API documentation follows NativeScript best practices and includes all nece
 - Verify all non-parent users are directed to home page after login
 - Complete a test and verify navigation
 - Check all navigation paths work as expected
+- Verify navigation flow feels natural and intuitive
+
+## 2025-01-31 15:40:10Z - Fixed Home Button Navigation
+
+### What
+1. Fixed "Back to Home" button in test results page
+2. Changed navigation path from '/home' to '/'
+
+### Why
+- Button was not working due to incorrect route path
+- Root path ('/') is the correct route for home page
+
+### How
+1. Updated navigation in TestResults.tsx:
+   ```typescript
+   <button
+     onClick={() => navigate('/')}
+     className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+   >
+     Back to Home
+   </button>
+   ```
+
+### Testing
+- Complete a test
+- Click "Back to Home" button
+- Verify it correctly navigates to the home page

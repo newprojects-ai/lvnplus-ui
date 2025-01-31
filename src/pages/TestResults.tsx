@@ -166,7 +166,7 @@ export function TestResults() {
               Practice More
             </button>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/')}
               className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               Back to Home
