@@ -25,8 +25,12 @@ export function LoginForm() {
     try {
       await login({ email, password, role });
       
-      // Redirect to home page
-      navigate('/', { replace: true });
+      // Redirect based on role
+      if (role === 'Parent') {
+        navigate('/parent', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (err instanceof ZodError) {

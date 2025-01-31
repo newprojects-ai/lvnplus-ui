@@ -2465,3 +2465,51 @@ This API documentation follows NativeScript best practices and includes all nece
 - Complete a test
 - Click "Back to Home" button
 - Verify it correctly navigates to the home page
+- Check that there are no more dashboard route errors
+
+## 2025-01-31 15:37:52Z - Navigation Updates
+
+### What
+1. Reset to working version (d197b14)
+2. Updated login navigation:
+   - Students and other users go to home page ('/')
+   - Parents go to parent dashboard ('/parent')
+3. Updated test results navigation:
+   - "Back to Home" button now goes to home page ('/')
+   - "Practice More" button retained for '/practice-tests'
+
+### Why
+- Ensure consistent navigation throughout the app
+- Provide role-specific navigation after login
+- Maintain clean and working UI state
+
+### How
+1. Reset to working version:
+   ```bash
+   git reset --hard d197b14
+   ```
+
+2. Updated login navigation in `LoginForm.tsx`:
+   ```typescript
+   if (role === 'Parent') {
+     navigate('/parent', { replace: true });
+   } else {
+     navigate('/', { replace: true });
+   }
+   ```
+
+3. Updated test results navigation in `TestResults.tsx`:
+   ```typescript
+   <button
+     onClick={() => navigate('/')}
+     className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+   >
+     Back to Home
+   </button>
+   ```
+
+### Testing
+- Test login with different user roles
+- Verify all non-parent users are directed to home page after login
+- Complete a test and verify navigation
+- Check all navigation paths work as expected
