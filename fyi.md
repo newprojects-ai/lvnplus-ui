@@ -2410,3 +2410,58 @@ This API documentation follows NativeScript best practices and includes all nece
 - Verify all non-parent users are directed to home page after login
 - Complete a test and verify the "Back to Home" button works correctly
 - Check that navigation flow feels natural and intuitive
+
+## 2025-01-31 15:11:24Z - Reverted UI Changes and Fixed Navigation
+
+### What
+1. Reverted to previous working version (e85b745)
+2. Re-applied navigation changes:
+   - Updated login redirect to home page
+   - Updated test results navigation to home page
+
+### Why
+- Restore previous UI design and color scheme
+- Maintain consistent navigation to home page
+- Fix regression from merge
+
+### How
+1. Reverted to working version:
+   ```bash
+   git reset --hard e85b745
+   ```
+
+2. Re-applied navigation changes to:
+   - `src/components/Auth/LoginForm.tsx`
+   - `src/pages/TestResults.tsx`
+
+### Testing
+- Verify UI appearance is back to previous version
+- Test login navigation
+- Test test results navigation
+- Verify all other functionality works as expected
+
+## 2025-01-31 15:13:57Z - Fixed Home Button Navigation
+
+### What
+1. Fixed "Back to Home" button in TestResults page
+2. Changed navigation from `/dashboard` to `/`
+
+### Why
+- Fix non-working home button on test completion screen
+- Ensure consistent navigation throughout the app
+
+### How
+1. Updated button navigation in TestResults.tsx:
+   ```typescript
+   <button
+     onClick={() => navigate('/')}
+     className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+   >
+     Back to Home
+   </button>
+   ```
+
+### Testing
+- Complete a test
+- Click "Back to Home" button
+- Verify it correctly navigates to the home page
