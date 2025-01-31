@@ -7,7 +7,7 @@ interface TopicsParams {
 
 export const topicsApi = {
   getTopics: async (subjectId: number): Promise<Topic[]> => {
-    const response = await apiClient.get<Topic[]>('/topics', { 
+    const response = await apiClient.get<Topic[]>('/topics', {
       params: { subjectId }
     });
     return response.data;

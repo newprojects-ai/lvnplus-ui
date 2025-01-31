@@ -46,24 +46,26 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     setStudentProgress(prev => {
       if (!prev) return prev;
 
-      const newXP = prev.currentXP + amount;
+      let currentXP = prev.currentXP + amount;
       let newLevel = prev.level;
       let nextXP = prev.nextLevelXP;
 
       // Level up if XP threshold reached
-      while (newXP >= nextXP) {
+      while (currentXP >= nextXP) {
         newLevel++;
-        newXP -= nextXP;
+        currentXP -= nextXP;
         nextXP = Math.round(nextXP * 1.5); // Increase XP required for next level
       }
 
       return {
         ...prev,
         level: newLevel,
-        currentXP: newXP,
+        currentXP: currentXP,
         nextLevelXP: nextXP
       };
     });
+
+    checkAchievements();
   };
 
   const unlockAchievement = (achievementId: string) => {

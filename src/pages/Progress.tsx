@@ -1,10 +1,12 @@
 import React from 'react';
-import { LineChart, Trophy, Target } from 'lucide-react';
+import { LineChart, Trophy, Target, ArrowLeft } from 'lucide-react';
 import { LevelProgress } from '../components/Gamification/LevelProgress';
 import { StreakTracker } from '../components/Gamification/StreakTracker';
 import { AchievementCard } from '../components/Gamification/AchievementCard';
+import { useNavigate } from 'react-router-dom';
 
 export function Progress() {
+  const navigate = useNavigate();
   const mockProgress = {
     mathematics: {
       testsCompleted: 5,
@@ -24,8 +26,41 @@ export function Progress() {
     }
   };
 
+  const achievements = [
+    {
+      id: '1',
+      title: 'First Test Complete',
+      description: 'Complete your first test',
+      icon: Trophy,
+      unlocked: true,
+    },
+    {
+      id: '2',
+      title: 'Perfect Score',
+      description: 'Get 100% on any test',
+      icon: Target,
+      unlocked: false,
+    },
+    {
+      id: '3',
+      title: 'Study Streak',
+      description: 'Complete tests for 3 days in a row',
+      icon: LineChart,
+      unlocked: false,
+    }
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate(-1)}
+        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back
+      </button>
+
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-900">My Progress</h1>
         <p className="mt-2 text-lg text-gray-600">Track your learning journey</p>

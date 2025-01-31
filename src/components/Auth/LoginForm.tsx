@@ -29,7 +29,7 @@ export function LoginForm() {
       if (role === 'Parent') {
         navigate('/parent', { replace: true });
       } else {
-        navigate(location.state?.from?.pathname || '/', { replace: true });
+        navigate('/', { replace: true });
       }
     } catch (err) {
       console.error('Login error:', err);

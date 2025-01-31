@@ -207,7 +207,6 @@
 - [ ] Add customizable avatars and badges
 - [ ] Implement challenge system
 
-
 ### Practice Tests Subject Selection Update (December 2024)
 
 #### Key Changes
@@ -875,11 +874,11 @@ start: async (executionId: number): Promise<TestExecution> => {
    - Ensured consistent spacing across devices
    - Added proper text wrapping with `break-words`
 
-#### Technical Details
-- Uses Tailwind's typography plugin
-- Implements flex layout for better structure
-- Adds proper overflow handling
-- Maintains responsive design principles
+#### Technical Implementation
+- Simplified DOM structure
+- Removed unnecessary wrapper elements
+- Better CSS property targeting
+- More reliable overflow control
 
 #### Visual Improvements
 - Clean, card-based design
@@ -1205,7 +1204,7 @@ start: async (executionId: number): Promise<TestExecution> => {
 #### Next Steps
 - Test the LaTeX rendering with various mathematical content
 - Add error boundary for LaTeX parsing failures
-- Consider performance optimizations if needed
+- Consider caching rendered LaTeX for performance
 - Add support for additional LaTeX environments if needed
 
 ### 2024-12-17 Test Timer Implementation
@@ -1530,8 +1529,8 @@ Time: 2024-12-30 19:34:48Z
        studentId: number,
        plannedBy: number,
        configuration: {
-         topics: number[],
-         subtopics: number[],
+         topics: number[];
+         subtopics: number[];
          totalQuestionCount: number
        }
      }
@@ -1902,69 +1901,512 @@ The test configuration journey utilizes three main API modules:
 
 This API documentation follows NativeScript best practices and includes all necessary endpoints for implementing the test configuration journey in the mobile app.
 
-### Header Component Bug Fix (2025-01-21 17:02:37Z)
+### 2025-01-30 15:56:01Z - Fixed Practice Tests API Integration
 
-#### Issue
-- ReferenceError in Header component due to undefined `studentProgress` variable
-- Error occurred when trying to access gamification data without proper context hook
+### What
+1. Updated API Endpoints:
+   - Changed `/subjects` to `/v1/subjects` for subject list
+   - Changed `/subjects/:id` to `/v1/subjects/:id` for subject details
 
-#### Fix Applied
-- Added import for `useGamification` hook from GamificationContext
-- Properly initialized `studentProgress` using the hook
-- Ensures gamification data is properly accessed within the Header component
+2. Added Error Handling:
+   - Loading states for better UX
+   - Error messages with back navigation
+   - Back buttons on error and empty states
 
-#### Technical Details
-1. Changes Made:
-   ```typescript
-   // Added import
-   import { useGamification } from '../../contexts/GamificationContext';
-   
-   // Added hook usage in component
-   const { studentProgress } = useGamification();
+3. Improved Subject Data Handling:
+   - Added proper type interfaces
+   - Better state management for loading/error states
+   - Correct subject name-based test option selection
+
+### Why
+- Practice tests were showing "No practice tests available"
+- API endpoints were incorrect
+- Missing error handling and loading states
+- Need to match the API structure in the database
+
+### How
+1. Updated PracticeTests component:
+   ```tsx
+   const fetchSubject = async () => {
+     try {
+       setLoading(true);
+       const response = await apiClient.get<Subject>(`/v1/subjects/${subjectId}`);
+       setSubject(response.data);
+       setError(null);
+     } catch (err) {
+       setError('Failed to load subject data');
+     } finally {
+       setLoading(false);
+     }
+   };
    ```
 
-2. Impact
-   - Fixed runtime error in Header component
-   - Restored proper display of level, XP, and streak information
-   - Maintains proper context usage pattern
+2. Updated PracticeTestsSubjectSelection:
+   ```tsx
+   const fetchSubjects = async () => {
+     try {
+       const response = await apiClient.get<Subject[]>('/v1/subjects');
+       setSubjects(response.data);
+     } catch (err) {
+       setError('Failed to load subjects');
+     }
+   };
+   ```
 
-### Student Progress Initialization Fix (2025-01-21 17:06:17Z)
+### Testing
+- Verify subjects load correctly
+- Check that Mathematics shows correct practice options
+- Ensure error states show properly with back navigation
+- Test loading states appear during API calls
 
-#### Issue
-- NotFoundError when completing tests: "Student progress not found"
-- Error occurred when trying to add XP after test completion
-- Student progress records were not being created during user registration
+### 2025-01-30 16:01:56Z - Fixed API Endpoints and Dynamic Topic Loading
 
-#### Fix Applied
-- Modified AuthService to create initial student progress record during registration
-- Only creates progress record for users with STUDENT role
-- Sets initial values for level, XP, and other gamification metrics
+### What
+1. Updated API Endpoints:
+   - Changed topics API to use `/v1/subjects/${subjectId}/topics`
+   - Changed subtopics API to use `/v1/topics/${topicId}/subtopics`
+   - Fixed subject loading to use correct IDs from database
 
-#### Technical Details
-1. Changes Made in AuthService:
-   ```typescript
-   // Create initial student progress record if user has STUDENT role
-   if (roles.includes('STUDENT')) {
-     await prisma.student_progress.create({
-       data: {
-         user_id: user.user_id,
-         level: 1,
-         current_xp: 0,
-         next_level_xp: 1000,
-         streak_days: 0,
-         last_activity_date: new Date(),
-         total_points: 0
-       }
-     });
+2. Improved Error Handling:
+   - Added loading states for API calls
+   - Better error messages with retry options
+   - Added back navigation for error states
+   - Empty state handling for no topics
+
+3. UI Improvements:
+   - Added back button for better navigation
+   - Cleaner topic and subtopic selection UI
+   - Better visual feedback for selection states
+   - Progress indicator for selected topics
+
+### Why
+- Topics were not loading due to incorrect API endpoints
+- Subject IDs were hardcoded instead of using database values
+- Missing error states and loading indicators
+- Need for better navigation between pages
+
+### How
+1. Updated topics API endpoints:
+   ```tsx
+   export const topicsApi = {
+     getTopics: async (subjectId: number): Promise<Topic[]> => {
+       const response = await apiClient.get<Topic[]>(`/v1/subjects/${subjectId}/topics`);
+       return response.data;
+     },
+     getSubtopics: async (topicId: string): Promise<Subtopic[]> => {
+       const response = await apiClient.get<Subtopic[]>(`/v1/topics/${topicId}/subtopics`);
+       return response.data;
+     }
+   };
+   ```
+
+2. Added proper error handling:
+   ```tsx
+   const loadTopics = async () => {
+     try {
+       setLoading(true);
+       const topicsData = await topicsApi.getTopics(parseInt(subjectId));
+       setTopics(topicsData);
+       setError(null);
+     } catch (err) {
+       setError('Failed to load topics. Please try again.');
+     } finally {
+       setLoading(false);
+     }
+   };
+   ```
+
+### Testing
+- Verify topics load correctly for Mathematics (ID: 2)
+- Check that subtopics are fetched dynamically
+- Test error states and loading indicators
+- Verify back navigation works properly
+
+### 2025-01-30 16:05:49Z - Fixed API Endpoints to Match Backend Routes
+
+### What
+1. Updated API Endpoints:
+   - Changed `/v1/subjects` to `/subjects` for subject list
+   - Changed `/v1/subjects/${subjectId}/topics` to `/topics?subjectId=${subjectId}` for topics
+   - Changed `/v1/topics/${topicId}/subtopics` to `/topics/${topicId}/subtopics` for subtopics
+
+2. Fixed API Integration:
+   - Aligned frontend routes with backend API structure
+   - Updated query parameter handling for topics
+   - Maintained consistent route pattern across the application
+
+### Why
+- API calls were failing with 404 errors
+- Frontend routes didn't match backend route structure
+- Need to use query parameters for filtering topics by subject
+
+### How
+1. Updated topics API:
+   ```tsx
+   export const topicsApi = {
+     getTopics: async (subjectId: number): Promise<Topic[]> => {
+       const response = await apiClient.get<Topic[]>('/topics', {
+         params: { subjectId }
+       });
+       return response.data;
+     }
+   };
+   ```
+
+2. Updated subjects API call:
+   ```tsx
+   const fetchSubjects = async () => {
+     try {
+       const response = await apiClient.get<Subject[]>('/subjects');
+       setSubjects(response.data);
+     } catch (err) {
+       setError('Failed to load subjects');
+     }
+   };
+   ```
+
+### Testing
+- Verify subjects load correctly from `/subjects` endpoint
+- Check that topics load using query parameter
+- Test subtopics endpoint with topic ID
+- Ensure all API calls return expected data
+
+### 2025-01-30 16:23:32Z - Updated Topic-wise Practice UI
+
+### What
+1. Redesigned Topic-wise Practice page to match new design:
+   - Split screen layout with topics on left (1/3) and subtopics on right (2/3)
+   - Added visual indicators for topic selection states (check, minus, plus icons)
+   - Improved topic and subtopic card styling with hover and active states
+   - Added Next button in top-right corner
+   - Removed back button to match design
+
+2. UI State Improvements:
+   - Active topic highlighted in blue
+   - Selected subtopics shown with checkmarks
+   - Full topic selection shown in green
+   - Partial selection shown with minus icon
+   - Next button disabled when no topics selected
+
+### Why
+- Align with new design mockups
+- Improve user experience with better visual feedback
+- Make topic and subtopic selection more intuitive
+
+### How
+1. Updated layout structure:
+   ```tsx
+   <div className="flex gap-8">
+     <div className="w-1/3">
+       {/* Topics List */}
+     </div>
+     <div className="w-2/3">
+       {/* Subtopics Panel */}
+     </div>
+   </div>
+   ```
+
+2. Enhanced topic selection states:
+   ```tsx
+   const selectionState = getTopicSelectionState(topic.id);
+   const isActive = activeTopic === topic.id;
+   ```
+
+3. Improved visual feedback:
+   - Added background colors for different states
+   - Updated icon sizes and colors
+   - Added hover effects
+
+### Testing
+- Verify topic selection works correctly
+- Check subtopic selection updates properly
+- Confirm Next button enables/disables correctly
+- Test visual states for all selection scenarios
+
+### 2025-01-30 16:32:48Z - Updated Topic-wise Practice UI Colors and Width
+
+### What
+1. Updated topic section width:
+   - Changed topics section from 1/3 to 2/5 width
+   - Changed subtopics section from 2/3 to 3/5 width
+   - Added text truncation to prevent wrapping
+
+2. Updated color scheme for selection states:
+   - No selection: Normal/grey background
+   - Partial selection (one or more subtopics): Amber/yellow background
+   - Full selection (all subtopics): Green background
+
+### Why
+- Fix text wrapping issues in topic names
+- Improve visual feedback with more intuitive color coding
+- Make selection states more distinguishable
+
+### How
+1. Updated width classes in the layout:
+   ```tsx
+   <div className="flex gap-8">
+     <div className="w-2/5">  {/* Topics */}
+     <div className="w-3/5">  {/* Subtopics */}
+   </div>
+   ```
+
+2. Added truncate class to prevent text wrapping:
+   ```tsx
+   <span className="flex-grow truncate">{topic.name}</span>
+   ```
+
+3. Updated color classes for different states:
+   ```tsx
+   // Topic background colors
+   ${selectionState === 'full' ? 'bg-green-50' : ''}
+   ${selectionState === 'partial' ? 'bg-amber-50' : ''}
+   
+   // Icon colors
+   ${selectionState === 'full' ? 'text-green-600' : ''}
+   ${selectionState === 'partial' ? 'text-amber-600' : ''}
+   ```
+
+### Testing
+- Check that long topic names are truncated instead of wrapping
+- Verify color changes for each selection state:
+  - Grey when no subtopics selected
+  - Amber when some subtopics selected
+  - Green when all subtopics selected
+- Test all selection combinations and transitions
+
+## 2025-01-31 11:27:48Z - Fixed Level Configuration Error
+
+### What
+1. Added missing `level_config` table to the database schema:
+   ```prisma
+   model level_config {
+     level       Int      @id
+     xp_required Int
+     created_at  DateTime @default(now()) @db.Timestamp(0)
    }
    ```
 
-2. Impact
-   - Ensures student progress record exists before any gamification updates
-   - Fixes test completion errors
-   - Establishes proper initial state for new student accounts
+2. Added initial level configurations:
+   - Level 1: 1,000 XP
+   - Level 2: 2,000 XP
+   - Level 3: 3,500 XP
+   - Level 4: 5,500 XP
+   - Level 5: 8,000 XP
+   - Level 6: 11,000 XP
+   - Level 7: 14,500 XP
+   - Level 8: 18,500 XP
+   - Level 9: 23,000 XP
+   - Level 10: 28,000 XP
 
-3. Next Steps
-   - Consider adding a migration to create progress records for existing students
-   - Add validation to ensure progress record exists before gamification operations
-   - Monitor for any related issues during user registration
+### Why
+- Fix "Level configuration not found" error in gamification service
+- Provide proper XP requirements for each level
+- Enable level progression system
+
+### How
+1. Created migration for level_config table:
+   ```bash
+   npx prisma migrate dev --name add_level_config
+   ```
+
+2. Added level configurations to seed file:
+   ```typescript
+   const levelConfigs = [
+     { level: 1, xp_required: 1000 },
+     { level: 2, xp_required: 2000 },
+     // ...more levels
+   ];
+   ```
+
+3. Ran database seed to populate level configurations:
+   ```bash
+   npm run prisma:seed
+   ```
+
+### Testing
+- Verify level configurations are in the database
+- Test completing a test execution
+- Check XP is awarded correctly
+- Verify level up works when XP threshold is reached
+
+### 2025-01-31 11:34:02Z - Fixed Login Redirect
+
+### What
+1. Updated login redirect logic in `LoginForm.tsx`:
+   - Parent users -> `/parent`
+   - Student users -> `/subjects`
+   - Other users (Tutor, Admin) -> `/`
+
+### Why
+- Fix "No routes matched location '/dashboard'" error
+- Improve user experience by redirecting to appropriate landing page
+- Remove dependency on location state for redirect
+
+### How
+1. Updated handleSubmit function in LoginForm:
+   ```typescript
+   if (role === 'Parent') {
+     navigate('/parent', { replace: true });
+   } else if (role === 'Student') {
+     navigate('/subjects', { replace: true });
+   } else {
+     navigate('/', { replace: true });
+   }
+   ```
+
+### Testing
+- Test login with different roles:
+  - Student should go to /subjects
+  - Parent should go to /parent
+  - Tutor/Admin should go to /
+- Verify no more dashboard redirect errors
+
+## 2025-01-31 11:37:08Z - Fixed Dashboard Navigation
+
+### What
+1. Updated TestResults page navigation:
+   - Changed "Back to Dashboard" button to "Back to Subjects"
+   - Updated navigation path from `/dashboard` to `/subjects`
+
+### Why
+- Fix "No routes matched location '/dashboard'" error
+- Maintain consistency with the application's navigation flow
+- Improve user experience by providing a clear path back to subject selection
+
+### How
+1. Updated button in TestResults.tsx:
+   ```tsx
+   <button
+     onClick={() => navigate('/subjects')}
+     className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+   >
+     Back to Subjects
+   </button>
+   ```
+
+### Testing
+- Complete a test and verify the navigation button works
+- Check that there are no more dashboard route errors
+- Verify the button takes you to the subjects page
+
+## 2025-01-31 11:58:32Z - Fixed Favicon Error
+
+### What
+1. Removed missing vite.svg favicon reference from index.html
+
+### Why
+- Fix "Failed to load resource: net::ERR_CONNECTION_REFUSED" errors for vite.svg
+- Remove unnecessary polling for non-existent favicon
+- Clean up browser console errors
+
+### How
+1. Removed the following line from index.html:
+   ```html
+   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+   ```
+
+### Testing
+- Verify that the vite.svg errors no longer appear in the console
+- Check that the application still functions normally
+
+## 2025-01-31 12:01:07Z - Fixed Subject Route Navigation
+
+### What
+1. Added subject name to route mapping in `SubjectSelection.tsx`
+2. Created `getSubjectRoute` function to handle route mapping
+
+### Why
+- Fix "No routes matched location '/maths'" error
+- Handle variations in subject names (e.g., 'maths' vs 'mathematics')
+- Ensure consistent routing across the application
+
+### How
+1. Added route mapping function:
+   ```typescript
+   const getSubjectRoute = (subjectName: string): string => {
+     switch(subjectName.toLowerCase()) {
+       case 'mathematics':
+       case 'maths':
+         return '/mathematics';
+       case 'english':
+         return '/english';
+       // ... other mappings
+     }
+   };
+   ```
+2. Updated Link component to use the new mapping:
+   ```typescript
+   <Link to={getSubjectRoute(subject.name)}>
+   ```
+
+### Testing
+- Test navigation for all subjects
+- Verify no more route matching errors
+- Check that both 'maths' and 'mathematics' route to /mathematics
+
+## 2025-01-31 14:47:52Z - Restored Mixed Test Functionality
+
+### What
+1. Updated route in `App.tsx` to use `MixedTestConfig` component instead of placeholder content
+2. Restored mixed test functionality that was previously available
+
+### Why
+- Fix regression where mixed test showed "coming soon" placeholder
+- Restore previously working mixed test functionality
+- Improve user experience by providing access to mixed test feature
+
+### How
+1. Updated route in App.tsx:
+   ```tsx
+   <Route
+     path="/practice/tests/mixed/:subjectId"
+     element={
+       <ProtectedRoute allowedRoles={['Student', 'Tutor', 'Admin']}>
+         <MixedTestConfig />
+       </ProtectedRoute>
+     }
+   />
+   ```
+
+### Testing
+- Navigate to mixed test option
+- Verify mixed test configuration page loads properly
+- Test creating and taking a mixed test
+- Verify all mixed test functionality works as before
+
+## 2025-01-31 14:50:35Z - Updated Navigation Flow
+
+### What
+1. Changed login redirect for all non-parent users to go to home page
+2. Updated test results navigation to go back to home page
+
+### Why
+- Improve navigation consistency
+- Direct users to home page where they can see all available options
+- Make navigation more intuitive for users after completing tests
+
+### How
+1. Updated login redirect in `LoginForm.tsx`:
+   ```typescript
+   if (role === 'Parent') {
+     navigate('/parent', { replace: true });
+   } else {
+     navigate('/', { replace: true });
+   }
+   ```
+
+2. Updated test results navigation in `TestResults.tsx`:
+   ```typescript
+   <button
+     onClick={() => navigate('/')}
+     className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+   >
+     Back to Home
+   </button>
+   ```
+
+### Testing
+- Test login with different user roles
+- Verify all non-parent users are directed to home page after login
+- Complete a test and verify the "Back to Home" button works correctly
+- Check that navigation flow feels natural and intuitive

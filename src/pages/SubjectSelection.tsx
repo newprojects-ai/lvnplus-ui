@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Calculator, Globe, Microscope, Palette } from 'lucide-react';
+import { Briefcase, Book, Globe, Microscope, Palette } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../api/client';
 
@@ -33,7 +33,7 @@ export function SubjectSelection() {
   const getSubjectIcon = (subjectName: string) => {
     switch(subjectName.toLowerCase()) {
       case 'mathematics':
-        return <Calculator className="h-12 w-12 text-indigo-600" />;
+        return <Briefcase className="h-12 w-12 text-indigo-600" />;
       case 'english':
         return <Book className="h-12 w-12 text-emerald-600" />;
       case 'science':
@@ -44,6 +44,25 @@ export function SubjectSelection() {
         return <Palette className="h-12 w-12 text-purple-600" />;
       default:
         return <Book className="h-12 w-12 text-gray-600" />;
+    }
+  };
+
+  const getSubjectRoute = (subjectName: string): string => {
+    // Map any subject name variations to their correct route
+    switch(subjectName.toLowerCase()) {
+      case 'mathematics':
+      case 'maths':
+        return '/mathematics';
+      case 'english':
+        return '/english';
+      case 'science':
+        return '/science';
+      case 'geography':
+        return '/geography';
+      case 'art':
+        return '/art';
+      default:
+        return `/${subjectName.toLowerCase()}`;
     }
   };
 
@@ -86,7 +105,7 @@ export function SubjectSelection() {
               <p className="text-gray-600 mb-6">{subject.description}</p>
               <div className="flex justify-between items-center">
                 <Link 
-                  to={`/${subject.name.toLowerCase()}`} 
+                  to={getSubjectRoute(subject.name)}
                   className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
                 >
                   Explore {subject.name}

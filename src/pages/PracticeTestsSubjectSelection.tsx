@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Calculator, ChevronRight } from 'lucide-react';
+import { GraduationCap, BookOpen, ChevronRight } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
 
@@ -33,9 +33,9 @@ export function PracticeTestsSubjectSelection() {
   const getSubjectIcon = (subjectName: string) => {
     switch(subjectName.toLowerCase()) {
       case 'mathematics':
-        return <Calculator className="h-12 w-12" />;
+        return <GraduationCap className="h-12 w-12" />;
       case 'english':
-        return <Book className="h-12 w-12" />;
+        return <BookOpen className="h-12 w-12" />;
       default:
         return <ChevronRight className="h-12 w-12" />;
     }
