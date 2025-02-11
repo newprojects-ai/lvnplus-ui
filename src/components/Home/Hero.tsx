@@ -33,7 +33,11 @@ export function Hero() {
 
   const isFeatureEnabled = (allowedRoles?: string[]) => {
     if (!isAuthenticated || !user || !allowedRoles) return false;
-    return user.roles.some(role => allowedRoles.includes(role));
+    return user.roles.some(role => 
+      allowedRoles.some(allowedRole => 
+        allowedRole.toLowerCase() === role.toLowerCase()
+      )
+    );
   };
 
   return (

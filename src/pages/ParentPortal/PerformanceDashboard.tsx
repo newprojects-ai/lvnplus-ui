@@ -1,130 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, LineChart, Activity, Target, TrendingUp } from 'lucide-react';
-import { PerformanceMetrics } from '../../types/parent';
+import { BarChart2, TrendingUp, Clock, Award } from 'lucide-react';
+import { api } from '../../api/api';
 
 export function PerformanceDashboard() {
-  const [selectedChild, setSelectedChild] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
-  const [timeRange, setTimeRange] = useState<'1M' | '3M' | '6M' | '1Y'>('3M');
+  const [executions, setExecutions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTestExecutions();
+  }, []);
+
+  const loadTestExecutions = async () => {
+    try {
+      const response = await api.getTestExecutions();
+      setExecutions(response);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to load test executions:', error);
+      setLoading(false);
+    }
+  };
+
+  const calculateStats = (executions: any[]) => {
+    if (!executions.length) return { avgScore: 0, totalTests: 0, avgTime: 0 };
+
+    const totalTests = executions.length;
+    const avgScore = executions.reduce((sum, exec) => sum + (exec.score || 0), 0) / totalTests;
+    const avgTime = executions.reduce((sum, exec) => sum + (exec.duration || 0), 0) / totalTests;
+
+    return { avgScore, totalTests, avgTime };
+  };
+
+  const stats = calculateStats(executions);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Performance Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value="1M">Last Month</option>
-            <option value="3M">Last 3 Months</option>
-            <option value="6M">Last 6 Months</option>
-            <option value="1Y">Last Year</option>
-          </select>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">Performance Dashboard</h1>
 
-      {metrics && (
-        <div className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {loading ? (
+        <div className="text-center py-8">Loading...</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Average Score</h3>
-                <Activity className="h-6 w-6 text-indigo-600" />
-              </div>
-              <p className="text-3xl font-bold text-indigo-600">
-                {metrics.averageScore}%
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Across {metrics.testsCompleted} tests
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Time Spent</h3>
-                <Clock className="h-6 w-6 text-green-600" />
-              </div>
-              <p className="text-3xl font-bold text-green-600">
-                {Math.floor(metrics.timeSpent / 60)}h {metrics.timeSpent % 60}m
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Total learning time
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Progress</h3>
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-              <p className="text-3xl font-bold text-purple-600">
-                {metrics.monthlyProgress[metrics.monthlyProgress.length - 1].improvement}%
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Improvement this month
-              </p>
-            </div>
-          </div>
-
-          {/* Topic Performance */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Topic Performance</h3>
-            <div className="space-y-4">
-              {Object.entries(metrics.topicPerformance).map(([topic, score]) => (
-                <div key={topic}>
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>{topic}</span>
-                    <span>{score}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-indigo-600 h-2 rounded-full"
-                      style={{ width: `${score}%` }}
-                    />
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Average Score</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats.avgScore.toFixed(1)}%</p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Strengths and Areas for Improvement */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Strengths</h3>
-              <div className="space-y-2">
-                {metrics.strengthAreas.map((area, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 text-green-600"
-                  >
-                    <CheckCircle className="h-5 w-5" />
-                    <span>{area}</span>
-                  </div>
-                ))}
+                <BarChart2 className="h-8 w-8 text-indigo-600" />
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Areas for Improvement
-              </h3>
-              <div className="space-y-2">
-                {metrics.improvementAreas.map((area, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 text-orange-600"
-                  >
-                    <Target className="h-5 w-5" />
-                    <span>{area}</span>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Tests Taken</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats.totalTests}</p>
+                </div>
+                <Award className="h-8 w-8 text-indigo-600" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Average Time per Test</p>
+                  <p className="text-2xl font-semibold text-gray-900">{Math.round(stats.avgTime)} min</p>
+                </div>
+                <Clock className="h-8 w-8 text-indigo-600" />
               </div>
             </div>
           </div>
-        </div>
+
+          <div className="bg-white rounded-lg shadow-md">
+            <div className="px-4 py-5 sm:px-6">
+              <h3 className="text-lg font-medium text-gray-900">Recent Test Results</h3>
+            </div>
+            <div className="border-t border-gray-200">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Student
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Test Title
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Score
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Time Taken
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {executions.map((execution) => (
+                      <tr key={execution.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {execution.test_plan.student.firstName} {execution.test_plan.student.lastName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {execution.test_plan.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full
+                            ${execution.score >= 80 ? 'bg-green-100 text-green-800' :
+                              execution.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'}`}
+                          >
+                            {execution.score}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(execution.completed_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {Math.round(execution.duration)} min
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

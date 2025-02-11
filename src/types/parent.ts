@@ -62,3 +62,37 @@ export interface PerformanceMetrics {
   strengthAreas: string[];
   improvementAreas: string[];
 }
+
+export interface TestPlan {
+  id: string;
+  title: string;
+  description: string;
+  studentId: string;
+  plannedBy: string;
+  plannedByType: 'PARENT' | 'TUTOR' | 'SYSTEM';
+  configuration: {
+    questionDistribution: Record<string, number>;
+    isTimed: boolean;
+    timeLimit?: number;
+  };
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestExecution {
+  id: string;
+  testPlanId: string;
+  studentId: string;
+  startedAt: string;
+  completedAt?: string;
+  score?: number;
+  duration?: number;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  answers: Array<{
+    questionId: string;
+    selectedOption: string;
+    isCorrect: boolean;
+    timeTaken: number;
+  }>;
+}

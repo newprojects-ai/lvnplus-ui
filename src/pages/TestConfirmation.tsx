@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Clock, ListChecks, Play, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Clock, ListChecks, Play, BookOpen, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { testsApi } from '../api/tests';
+import { parentApi } from '../api/parent.api';
 import { distributeQuestions } from '../utils/questionDistribution';
 
 import { Topic, TestType } from '../types/test';
+import { LinkedChild } from '../types/parent';
 
 interface TestConfirmationProps {
   config: {
@@ -22,6 +24,23 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
   const { user, isLoading: isAuthLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkedChildren, setLinkedChildren] = useState<LinkedChild[]>([]);
+  const [selectedChildren, setSelectedChildren] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      if (user?.role === 'PARENT') {
+        try {
+          const children = await parentApi.getLinkedChildren();
+          setLinkedChildren(children);
+        } catch (error) {
+          console.error('Error fetching linked children:', error);
+          setError('Failed to load linked children');
+        }
+      }
+    };
+    fetchChildren();
+  }, [user]);
 
   const selectedTopics = topics.filter(topic => 
     topic.subtopics.some(st => selectedSubtopics.includes(st.id))
@@ -46,80 +65,62 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
       return;
     }
 
-    const studentId = user.id ? Number(user.id) : null;
-    console.log('Extracted Student ID:', studentId, 'User ID Type:', typeof user.id);
-
-    if (!studentId || isNaN(studentId)) {
-      console.error('Invalid Student ID', { 
-        userId: user.id, 
-        studentId: studentId,
-        userObject: user
-      });
-      console.groupEnd();
-      setError('Unable to identify student. Please log out and log in again.');
+    if (user.role === 'PARENT' && selectedChildren.length === 0) {
+      setError('Please select at least one child');
       return;
     }
-
-    const isStudent = user.roles.includes('Student');
-    console.log('Is Student Role Present:', isStudent);
-    if (!isStudent) {
-      console.error('User does not have student role');
-      console.log('User Roles:', user.roles);
-      console.groupEnd();
-      setError('Only students can start a test');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
 
     try {
-      const payload = {
-        templateId: null,
-        boardId: 1,
-        testType: 'TOPIC',
-        timingType: config.isTimed ? 'TIMED' : 'UNTIMED',
-        timeLimit: config.isTimed ? 1800 : 0,
-        studentId: studentId,
-        plannedBy: studentId,
-        configuration: {
-          topics: selectedTopics.map(t => Number(t.id)),
-          subtopics: selectedSubtopics.map(st => Number(st)),
-          totalQuestionCount: parseInt(config.questionCount)
-        }
-      };
-      console.log('Detailed Test Plan Payload:', JSON.stringify(payload, null, 2));
+      setIsLoading(true);
+      setError(null);
 
-      console.log('Attempting to create test plan...');
-      const testPlan = await testsApi.plans.create(payload);
-      console.log('Test Plan Created Successfully:', JSON.stringify(testPlan, null, 2));
+      const questionDistribution = distributeQuestions(
+        parseInt(config.questionCount),
+        selectedTopics,
+        selectedSubtopics
+      );
 
-      console.log('Attempting to create test execution...');
-      const execution = await testsApi.executions.create(testPlan.testPlanId);
-      console.log('Test Execution Created Successfully:', JSON.stringify(execution, null, 2));
-      
-      console.log('Starting test execution...');
-      const startedExecution = await testsApi.executions.start(execution.executionId);
-      console.log('Test Execution Started Successfully:', JSON.stringify(startedExecution, null, 2));
-      
-      console.log('Navigating to test execution page...');
-      navigate(`/test/${execution.executionId}`);
-    } catch (err: any) {
-      console.error('Failed to start test - Full Error:', err);
-      
-      if (err.response) {
-        console.error('Error Response Data:', err.response.data);
-        console.error('Error Response Status:', err.response.status);
-        console.error('Error Response Headers:', err.response.headers);
-        
-        setError(err.response.data?.message || 'Failed to start the test. Please try again.');
-      } else if (err.request) {
-        console.error('No response received:', err.request);
-        setError('No response from server. Please check your connection.');
+      if (user.role === 'PARENT') {
+        // Create test plan for each selected child
+        await Promise.all(
+          selectedChildren.map(async (childId) => {
+            const testPlan = await testsApi.createTestPlan({
+              studentId: childId,
+              title: `${selectedTopics[0]?.name || 'Practice'} Test`,
+              description: `Test covering ${selectedTopics.map(t => t.name).join(', ')}`,
+              configuration: {
+                questionDistribution,
+                isTimed: config.isTimed,
+                timeLimit: config.isTimed ? 30 : undefined
+              }
+            });
+            console.log(`Created test plan for child ${childId}:`, testPlan);
+          })
+        );
+        navigate('/parent/test/success');
       } else {
-        console.error('Error setting up request:', err.message);
-        setError('An unexpected error occurred. Please try again.');
+        const studentId = user.id ? Number(user.id) : null;
+        if (!studentId) {
+          throw new Error('Invalid student ID');
+        }
+
+        const testPlan = await testsApi.createTestPlan({
+          studentId,
+          title: `${selectedTopics[0]?.name || 'Practice'} Test`,
+          description: `Test covering ${selectedTopics.map(t => t.name).join(', ')}`,
+          configuration: {
+            questionDistribution,
+            isTimed: config.isTimed,
+            timeLimit: config.isTimed ? 30 : undefined
+          }
+        });
+
+        console.log('Created Test Plan:', testPlan);
+        navigate('/test/session', { state: { testPlanId: testPlan.id } });
       }
+    } catch (error) {
+      console.error('Error creating test plan:', error);
+      setError('Failed to create test plan');
     } finally {
       setIsLoading(false);
       console.groupEnd();
@@ -138,84 +139,104 @@ export function TestConfirmation({ config, topics, selectedSubtopics, onBack }: 
         </button>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Test Settings</h2>
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Test Summary</h2>
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <BookOpen className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Selected Topics</h3>
+                <ul className="mt-1 text-sm text-gray-500">
+                  {selectedTopics.map(topic => (
+                    <li key={topic.id}>{topic.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-      <div className="space-y-6">
-         <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-           <BookOpen className="h-6 w-6 text-indigo-500 mt-1" />
-           <div className="flex-1">
-             <h3 className="font-medium text-gray-900">Selected Topics</h3>
-             {selectedTopics.length > 0 ? (
-               <div className="mt-2 space-y-3">
-                 {selectedTopics.map(topic => {
-                   const topicSubtopics = topic.subtopics.filter(st => 
-                     selectedSubtopics.includes(st.id)
-                   );
-                   const allSubtopicsSelected = topicSubtopics.length === topic.subtopics.length;
+            <div className="flex items-center">
+              <ListChecks className="h-5 w-5 text-gray-400 mr-3" />
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Number of Questions</h3>
+                <p className="mt-1 text-sm text-gray-500">{config.questionCount} questions</p>
+              </div>
+            </div>
 
-                   return (
-                     <div key={topic.id} className="border-l-2 border-indigo-200 pl-3">
-                       <div className="font-medium text-gray-800 flex items-center gap-2">
-                         {topic.name}
-                         {!allSubtopicsSelected && (
-                           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                             Partial
-                           </span>
-                         )}
-                       </div>
-                       <div className="mt-1 text-sm text-gray-600">
-                         {topicSubtopics.map(st => st.name).join(', ')}
-                       </div>
-                     </div>
-                   );
-                 })}
-               </div>
-             ) : (
-               <p className="mt-2 text-gray-500">No topics selected</p>
-             )}
-           </div>
-         </div>
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 text-gray-400 mr-3" />
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Time Limit</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {config.isTimed ? '30 minutes' : 'No time limit'}
+                </p>
+              </div>
+            </div>
 
-        <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-          <ListChecks className="h-6 w-6 text-indigo-500 mt-1" />
-          <div>
-            <h3 className="font-medium text-gray-900">Number of Questions</h3>
-            <p className="text-gray-600">{config.questionCount} questions</p>
+            {user?.role === 'PARENT' && (
+              <div className="flex items-start">
+                <Users className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">Assign To</h3>
+                  <div className="mt-2 space-y-2">
+                    {linkedChildren.map((child) => (
+                      <label key={child.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          value={child.id}
+                          checked={selectedChildren.includes(child.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedChildren([...selectedChildren, child.id]);
+                            } else {
+                              setSelectedChildren(selectedChildren.filter(id => id !== child.id));
+                            }
+                          }}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          {child.firstName} {child.lastName}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-          <Clock className="h-6 w-6 text-indigo-500 mt-1" />
-          <div>
-            <h3 className="font-medium text-gray-900">Test Mode</h3>
-            <p className="text-gray-600">{config.isTimed ? 'Timed' : 'Un-timed'}</p>
+        {error && (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {error}
+        <div className="flex justify-end">
+          <button
+            onClick={handleStartTest}
+            disabled={isLoading || (user?.role === 'PARENT' && selectedChildren.length === 0)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {isLoading ? (
+              'Creating Test Plan...'
+            ) : user?.role === 'PARENT' ? (
+              'Create Test Plans'
+            ) : (
+              <>
+                <Play className="h-4 w-4 mr-2" />
+                Start Test
+              </>
+            )}
+          </button>
         </div>
-      )}
-
-      <div className="mt-8 flex justify-end">
-        <button
-          onClick={handleStartTest}
-          disabled={isLoading}
-          className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? (
-            <>
-              <span className="animate-pulse">Starting Test...</span>
-            </>
-          ) : (
-            <>
-              Start Test
-              <Play className="h-4 w-4" />
-            </>
-          )}
-        </button>
       </div>
     </div>
   );

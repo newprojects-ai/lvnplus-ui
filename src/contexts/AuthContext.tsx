@@ -5,7 +5,9 @@ import {
   getAuthToken, 
   setAuthToken, 
   removeAuthToken, 
-  verifyToken 
+  verifyToken,
+  setUser as setStoredUser,
+  getUser as getStoredUser
 } from '../utils/auth';
 
 interface AuthContextType {
@@ -14,6 +16,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,24 +24,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = getAuthToken();
-      console.log('Initial Token Check:', token);
+      setIsLoading(true);
+      setError(null);
       
-      if (token) {
-        try {
-          const userData = await verifyToken(token);
-          console.log('Initial User Data:', userData);
-          setUser(userData);
-        } catch (error) {
-          console.error('Initial Token Verification Error:', error);
-          removeAuthToken();
+      try {
+        // First try to get user from storage
+        const storedUser = getStoredUser();
+        if (storedUser) {
+          console.log('Found stored user:', storedUser);
+          setUser(storedUser);
         }
+
+        // Then verify the token
+        const token = getAuthToken();
+        console.log('Initial token check:', token ? 'exists' : 'null');
+        
+        if (token) {
+          try {
+            const userData = await verifyToken(token);
+            console.log('Token verification result:', userData);
+            
+            if (userData) {
+              setUser(userData);
+              setStoredUser(userData);
+            } else {
+              console.log('Token verification returned null user');
+              setUser(null);
+              removeAuthToken();
+            }
+          } catch (error) {
+            console.error('Token verification error:', error);
+            setUser(null);
+            removeAuthToken();
+            setError('Session expired. Please log in again.');
+          }
+        } else {
+          console.log('No token found during initialization');
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setError('Failed to initialize authentication.');
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     initializeAuth();
@@ -46,27 +79,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (credentials: { email: string; password: string; role: Role }) => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      console.log('Login attempt with role:', credentials.role);
-      const response = await authApi.login(credentials);
-      console.log('Login response:', response);
+      console.log('Login attempt with:', credentials);
+      const { user: userData, token } = await authApi.login(credentials);
+      console.log('Login successful, user data:', userData);
+      console.log('User roles:', userData.roles);
       
-      // Ensure role is included in user data
-      const userData: User = {
-        id: response.user.id,
-        email: response.user.email,
-        firstName: response.user.firstName,
-        lastName: response.user.lastName,
-        roles: [credentials.role]
-      };
+      if (token) {
+        setAuthToken(token);
+      }
       
-      console.log('Setting user data:', userData);
-      setAuthToken(response.token);
       setUser(userData);
+      setStoredUser(userData);
     } catch (error) {
-      console.error('Login Error:', error);
-      removeAuthToken();
-      setUser(null);
+      console.error('Login error:', { email: credentials.email, error });
+      setError('Invalid credentials or server error');
       throw error;
     } finally {
       setIsLoading(false);
@@ -74,15 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    setIsLoading(true);
     try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout Error:', error);
-    } finally {
-      removeAuthToken();
+      console.log('Logging out user');
       setUser(null);
-      setIsLoading(false);
+      removeAuthToken();
+    } catch (error) {
+      console.error('Logout error:', error);
+      setError('Failed to logout properly.');
     }
   }, []);
 
@@ -92,15 +119,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isLoading,
+    error
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}

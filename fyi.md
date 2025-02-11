@@ -781,7 +781,8 @@ start: async (executionId: number): Promise<TestExecution> => {
    hyphens: 'auto'
    ```
    - Added `overflowWrap: 'anywhere'` for better wrapping
-   - Applied to both questions and options
+   - Simplified container structure
+   - Removed conflicting styles
 
 3. Responsive Design:
    - Added mobile-friendly padding
@@ -868,11 +869,11 @@ start: async (executionId: number): Promise<TestExecution> => {
    - Improved radio button styling
    - Fixed navigation button layout
 
-4. Responsive Design:
-   - Added proper mobile padding
-   - Implemented max-width constraints
-   - Ensured consistent spacing across devices
-   - Added proper text wrapping with `break-words`
+4. Container Management:
+   - Used `min-h-0` to prevent flex issues
+   - Proper overflow handling
+   - Better padding and margin structure
+   - Improved responsive behavior
 
 #### Technical Implementation
 - Simplified DOM structure
@@ -919,7 +920,7 @@ start: async (executionId: number): Promise<TestExecution> => {
    - Kept navigation outside scroll area
 
 #### Technical Details
-- Uses inline styles for critical text wrapping
+- Uses CSS3 wrapping properties
 - Implements sticky positioning for navigation
 - Maintains responsive layout
 - Preserves content scrollability
@@ -1004,9 +1005,9 @@ start: async (executionId: number): Promise<TestExecution> => {
    overflowWrap: 'anywhere',
    hyphens: 'auto'
    ```
-   - Combined multiple word-breaking properties
-   - Added block display for proper width calculation
-   - Applied to both questions and options
+   - Added `overflowWrap: 'anywhere'` for better wrapping
+   - Simplified container structure
+   - Removed conflicting styles
 
 3. Layout Structure:
    - Maintained two-pane layout
@@ -2481,8 +2482,8 @@ This API documentation follows NativeScript best practices and includes all nece
 
 ### Why
 - Ensure consistent navigation throughout the app
-- Provide role-specific navigation after login
-- Maintain clean and working UI state
+- Direct users to home page where they can see all available options
+- Make navigation more intuitive for users after completing tests
 
 ### How
 1. Reset to working version:
@@ -2541,3 +2542,689 @@ This API documentation follows NativeScript best practices and includes all nece
 - Complete a test
 - Click "Back to Home" button
 - Verify it correctly navigates to the home page
+- Check that there are no more dashboard route errors
+
+## 2025-01-31 15:42:09Z - Question Set Design Proposal
+
+### Current System
+- Questions are tightly coupled with tests
+- No separate storage for questions
+- Limited flexibility in question selection
+- No reusability of questions across tests
+
+### Proposed Enhancement: Question Set System
+
+#### 1. Data Model
+
+```typescript
+interface QuestionSet {
+  id: number;
+  name: string;
+  description: string;
+  subject: string;
+  topics: string[];
+  difficulty: number;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+}
+
+interface Question {
+  id: number;
+  questionSetId: number;
+  content: string;
+  type: 'MCQ' | 'NUMERIC' | 'TRUE_FALSE';
+  options?: QuestionOption[];
+  correctAnswer: string;
+  difficulty: number;
+  topics: string[];
+}
+
+interface QuestionOption {
+  id: number;
+  content: string;
+  isCorrect: boolean;
+  explanation?: string;
+}
+
+interface TestQuestionLink {
+  id: number;
+  testId: number;
+  questionId: number;
+  order: number;
+  points?: number;  // Optional override of question's default points
+  isRequired?: boolean;
+}
+```
+
+#### 2. Key Features
+
+1. **Question Set Management**
+   - Create, edit, and delete question sets
+   - Import/export question sets (CSV/Excel support)
+   - Tag and categorize sets
+   - Version control for questions
+
+2. **Question Selection Algorithm**
+   - Dynamic selection based on:
+     * Difficulty distribution
+     * Topic coverage
+     * Time constraints
+     * Previous usage
+     * Student performance history
+
+3. **Test Configuration**
+   - Link multiple question sets to a test
+   - Define selection criteria:
+     * Number of questions per set
+     * Difficulty range
+     * Topic distribution
+     * Random vs. sequential selection
+
+4. **Analytics & Insights**
+   - Track question performance:
+     * Success rate
+     * Average time taken
+     * Discrimination index
+     * Difficulty analysis
+   - Question set effectiveness metrics
+   - Student performance patterns
+
+#### 3. API Design
+
+```typescript
+// Question Set Management
+POST   /api/question-sets              // Create new set
+GET    /api/question-sets              // List all sets
+GET    /api/question-sets/:id          // Get specific set
+PUT    /api/question-sets/:id          // Update set
+DELETE /api/question-sets/:id          // Delete set
+
+// Question Management
+POST   /api/question-sets/:id/questions // Add question to set
+GET    /api/question-sets/:id/questions // List questions in set
+PUT    /api/questions/:id              // Update question
+DELETE /api/questions/:id              // Delete question
+
+// Test Integration
+POST   /api/tests/:id/question-sets    // Link question set to test
+GET    /api/tests/:id/questions        // Get selected questions
+```
+
+#### 4. UI Components
+
+1. **Question Set Manager**
+   - List view of all sets
+   - Creation/editing interface
+   - Bulk import/export tools
+   - Search and filter capabilities
+
+2. **Question Editor**
+   - Rich text editor for questions
+   - Option management
+   - Metadata input
+   - Preview mode
+
+3. **Test Configuration**
+   - Question set selection
+   - Criteria configuration
+   - Preview selected questions
+   - Save/load configurations
+
+#### 5. Implementation Phases
+
+1. **Phase 1: Core Infrastructure**
+   - Database schema updates
+   - Basic CRUD APIs
+   - Simple UI for management
+
+2. **Phase 2: Selection Algorithm**
+   - Implement question selection logic
+   - Add configuration options
+   - Test integration
+
+3. **Phase 3: Analytics**
+   - Add tracking mechanisms
+   - Implement analysis tools
+   - Performance dashboards
+
+4. **Phase 4: Advanced Features**
+   - Import/export functionality
+   - Version control
+   - Advanced analytics
+
+#### Benefits
+1. Better question organization and reusability
+2. More sophisticated test generation
+3. Improved analytics capabilities
+4. Easier content management
+5. Support for future enhancements
+
+#### Technical Considerations
+1. Database performance for large question sets
+2. Caching strategy for frequently used questions
+3. Versioning system for question updates
+4. Security for question bank access
+5. Backup and recovery procedures
+
+#### Next Steps
+1. Review and refine this design
+2. Prioritize implementation phases
+3. Create detailed technical specifications
+4. Plan migration strategy for existing questions
+5. Define success metrics
+
+## 2025-01-31 15:49:54Z - Question Set Relationship Clarification
+
+### Updated Design Points
+1. Question Set is not just an identifier - it contains:
+   - Metadata (name, description, etc.)
+   - Direct access to all questions in the set
+   - Total count of questions
+   - Ability to order questions within the set
+
+2. Key Relationships:
+   - One Question Set contains many Questions
+   - Each Question belongs to exactly one Question Set
+   - Test Plans can use multiple Question Sets
+   - Test Executions record which Question Set and specific questions were used
+
+3. Data Access:
+   - Can retrieve all questions for a set in one query
+   - Can filter questions by difficulty, topic, etc.
+   - Can maintain order of questions within a set
+   - Easy to track which questions are used in tests
+
+4. Implementation Benefits:
+   - Better organization of questions
+   - Efficient querying
+   - Clear data relationships
+   - Easy to manage and update questions
+
+Would you like me to update the full data model with these clarifications?
+
+## 2025-01-31 15:47:31Z - Simplified Question Set Design
+
+### Core Concept
+- Question Set is simply a collection of questions that can be used across different tests
+- Test execution data remains separate from Question Set
+- No need for backward compatibility with existing system
+
+### Data Model
+
+```typescript
+// Collection of questions that can be used in tests
+interface QuestionSet {
+  id: number;
+  name: string;
+  description: string;
+  subject: string;
+  topics: string[];
+  difficulty: number;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+}
+
+// Individual question within a set
+interface Question {
+  id: number;
+  questionSetId: number;
+  content: string;
+  type: 'MCQ' | 'NUMERIC' | 'TRUE_FALSE';
+  options?: {
+    id: number;
+    content: string;
+    isCorrect: boolean;
+  }[];
+  correctAnswer: string;
+  difficulty: number;
+  topics: string[];
+}
+
+// Links a question set to a test plan
+interface TestPlanQuestionSet {
+  id: number;
+  testPlanId: number;
+  questionSetId: number;
+  numberOfQuestions: number;  // How many questions to select from this set
+  difficultyRange: {
+    min: number;
+    max: number;
+  };
+}
+
+// Existing TestExecution interface updated to include question set info
+interface TestExecution {
+  id: number;
+  testPlanId: number;
+  questionSetId: number;  // Reference to which question set was used
+  studentId: string;
+  startTime: Date;
+  endTime?: Date;
+  answers: {
+    questionId: number;
+    selectedAnswer: string;
+    timeSpent: number;
+    isCorrect: boolean;
+  }[];
+  // ... other existing fields
+}
+```
+
+### Simple Selection Algorithm (Phase 1)
+1. Basic selection criteria:
+   - Number of questions needed
+   - Difficulty range
+   - Random selection within these constraints
+
+```typescript
+function selectQuestions(
+  questionSetId: number,
+  count: number,
+  difficultyRange: { min: number; max: number }
+): Question[] {
+  // 1. Get all questions from the set that match difficulty range
+  // 2. Randomly select the required number of questions
+  // 3. Return selected questions
+}
+```
+
+### API Endpoints (Phase 1)
+
+```typescript
+// Question Set Management
+POST   /api/question-sets              // Create new set
+GET    /api/question-sets              // List all sets
+GET    /api/question-sets/:id          // Get specific set
+PUT    /api/question-sets/:id          // Update set
+DELETE /api/question-sets/:id          // Delete set
+
+// Question Management
+POST   /api/question-sets/:id/questions // Add question to set
+GET    /api/question-sets/:id/questions // List questions in set
+PUT    /api/questions/:id              // Update question
+DELETE /api/questions/:id              // Delete question
+
+// Test Integration
+POST   /api/test-plans/:id/question-sets  // Link question set to test plan
+GET    /api/test-plans/:id/questions      // Get selected questions
+```
+
+### Implementation Plan
+
+1. **Phase 1**
+   - Create database tables
+   - Basic CRUD operations
+   - Question Set creation
+
+2. **Phase 2**
+   - Test Plan integration
+   - Question selection logic
+   - Test execution updates
+
+3. **Phase 3**
+   - Analytics
+   - Advanced selection
+   - Management UI
+
+4. **Phase 4**
+   - Import/export functionality
+   - Version control
+   - Advanced analytics
+
+### Key Points
+1. Question Sets are independent of tests
+2. Test execution data remains in its current structure
+3. Simple selection algorithm to start with
+4. Easy to extend with more features later
+
+### Next Steps
+1. Review this simplified design
+2. Start with database schema changes
+3. Implement basic CRUD operations
+4. Create simple UI for question set management
+
+### Parent Portal Implementation (2025-02-10 19:57:28Z)
+
+#### What
+Implemented a new parent portal with three main sections:
+1. Child Profiles
+2. Test Scheduler
+3. Performance Overview
+
+#### Why
+- Improve organization of parent features
+- Provide dedicated sections for different parent tasks
+- Make navigation more intuitive
+
+#### How
+1. Created new components:
+   ```typescript
+   // Main portal component with routing
+   - ParentPortal: Router and navigation tabs
+   
+   // Feature components
+   - ChildProfiles: Manage linked children
+   - TestScheduler: Schedule and manage tests
+   - Performance: View performance metrics
+   ```
+
+2. Updated routing:
+   ```typescript
+   // Parent portal routes
+   /parent/* -> ParentPortal
+   /parent/profiles/* -> ChildProfiles
+   /parent/scheduler/* -> TestScheduler
+   /parent/performance/* -> Performance
+   ```
+
+3. Added navigation:
+   - Tab-based navigation with icons
+   - Active state indicators
+   - Responsive design
+
+#### Technical Details
+1. Component Structure:
+   - Each feature has its own dedicated component
+   - Shared components for cards and charts
+   - Consistent loading states
+
+2. Data Flow:
+   - API integration for each section
+   - State management per component
+   - Error handling
+
+#### Next Steps
+1. Add child registration flow
+2. Implement test scheduling wizard
+3. Add more detailed performance metrics
+4. Add email notifications for test results
+
+### Environment Variable and Favicon Fixes (2025-02-09 22:07:36Z)
+
+#### What
+Fixed environment variable reference error and added favicon support.
+
+1. API Configuration:
+   - Updated environment variable access to use Vite's import.meta.env
+   - Fixed API base URL configuration
+   - Added fallback API URL
+
+2. Favicon Support:
+   - Created public directory
+   - Added favicon.ico reference
+   - Updated index.html
+
+#### Why
+- Fix "process is not defined" error
+- Fix favicon 404 error
+- Improve application configuration
+- Better development experience
+
+#### How
+1. Updated API Configuration:
+   ```typescript
+   // Changed from process.env to import.meta.env
+   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+   
+   const axiosInstance = axios.create({
+     baseURL: API_BASE_URL,
+     timeout: 30000,
+     headers: {
+       'Content-Type': 'application/json',
+     },
+   });
+   ```
+
+2. Added Favicon Support:
+   ```html
+   <head>
+     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+     <!-- ... -->
+   </head>
+   ```
+
+#### Technical Details
+1. Environment Variables:
+   - Using Vite's import.meta.env
+   - Default API URL: http://localhost:3000/api
+   - Environment file: .env
+
+2. Public Assets:
+   - Created public directory
+   - Added favicon.ico
+   - Using absolute paths in HTML
+
+#### Next Steps
+1. Add environment type definitions
+2. Add production environment configuration
+3. Add more public assets
+4. Enhance error handling
+
+### Parent Portal Updates (2025-02-10 20:09:06Z)
+
+#### What
+Updated the parent portal components to align with external child linking requirements and fix test scheduler issues.
+
+#### Why
+1. Child linking should be handled externally via API, not through the UI
+2. Test scheduler needed improvements for better functionality
+3. Simplified the UI to focus on core functionality
+
+#### How
+1. Created new components in `src/pages/parent/test-creation/`:
+   ```typescript
+   // Main portal component with routing
+   - ParentPortal: Router and navigation tabs
+   
+   // Feature components
+   - ParentSubjectSelection: Subject selection with parent-specific navigation
+   - ParentPracticeTests: Test type selection with parent context
+   - ParentTestConfig: Test configuration adapted for parent use
+   - ParentTestConfirmation: Test confirmation with child assignment
+   ```
+
+2. Updated parent API:
+   - Added `getSubjects()` method
+   - Added `getSubject(id)` method
+   - Using parent-specific endpoints for data access
+
+3. Updated ParentPortal.tsx:
+   - Changed routes to use new parent-specific components
+   - Updated navigation to use `/parent/test-creation/*` paths
+   - Improved tab navigation and active state handling
+
+#### Technical Details
+1. API Integration:
+   - Using `parentApi.getLinkedChildren()` to fetch externally linked children
+   - Using `parentApi.getTestPlans()` for test scheduling
+   - Proper error handling for API calls
+
+2. UI/UX Improvements:
+   - Clear loading states
+   - Informative empty states
+   - Consistent styling with Tailwind CSS
+   - Improved navigation flow
+
+#### Next Steps
+1. Test the external child linking process
+2. Enhance test plan creation workflow
+3. Add more detailed performance metrics
+4. Add email notifications for assigned tests
+
+### Reusing Student Test Components (2025-02-10 20:36:43Z)
+
+#### What
+Updated the parent portal test creation to reuse existing student test components.
+
+#### Why
+1. Maintain consistency between student and parent test creation flows
+2. Reduce code duplication by reusing existing components
+3. Ensure test creation follows the same pattern across roles
+
+#### How
+1. Removed custom test plan components:
+   - Removed `TestPlanList.tsx`
+   - Removed `CreateTestPlan.tsx`
+   - Removed `AssignTestPlan.tsx`
+
+2. Updated ParentPortal.tsx:
+   - Imported existing test components from student pages
+   - Updated routes to match student test creation flow
+   - Changed navigation to use `/parent/test/*` paths
+
+3. Enhanced TestConfirmation.tsx:
+   - Added child selection for parent role
+   - Modified test plan creation to support multiple children
+   - Added role-specific UI elements and logic
+
+#### Technical Details
+1. Reused Components:
+   - `SubjectSelection.tsx`
+   - `PracticeTests.tsx`
+   - `TestConfig.tsx`
+   - `TestConfirmation.tsx`
+   - `TestSession.tsx`
+   - `TestResults.tsx`
+
+2. API Integration:
+   - Using same test creation endpoints with role-specific logic
+   - Added child assignment functionality for parents
+
+#### Next Steps
+1. Test the flow with different user roles
+2. Add role-specific validations
+3. Enhance error handling for parent-specific cases
+4. Add success notifications for test assignments
+
+### Parent-Specific Test Creation Components (2025-02-10 20:43:49Z)
+
+#### What
+Created parent-specific test creation components instead of reusing student components directly.
+
+#### Why
+1. Parent role requires different navigation paths and UI elements
+2. Need to handle child assignment during test creation
+3. Avoid access permission issues by using parent-specific API endpoints
+
+#### How
+1. Created new components in `src/pages/parent/test-creation/`:
+   ```typescript
+   // Main portal component with routing
+   - ParentPortal: Router and navigation tabs
+   
+   // Feature components
+   - ParentSubjectSelection: Subject selection with parent-specific navigation
+   - ParentPracticeTests: Test type selection with parent context
+   - ParentTestConfig: Test configuration adapted for parent use
+   - ParentTestConfirmation: Test confirmation with child assignment
+   ```
+
+2. Updated parent API:
+   - Added `getSubjects()` method
+   - Added `getSubject(id)` method
+   - Using parent-specific endpoints for data access
+
+3. Updated ParentPortal.tsx:
+   - Changed routes to use new parent-specific components
+   - Updated navigation to use `/parent/test-creation/*` paths
+   - Improved tab navigation and active state handling
+
+#### Technical Details
+1. Component Features:
+   - Subject selection with parent-specific loading states
+   - Test type selection (Topic Wise, Mixed Practice, Mental Arithmetic)
+   - Test configuration with question count and timing options
+   - Child selection and assignment in confirmation step
+
+2. API Integration:
+   - Using parent-specific endpoints for subject data
+   - Handling child assignment during test plan creation
+   - Error handling for parent-specific scenarios
+
+#### Next Steps
+1. Add success page for test plan creation
+2. Implement test scheduling options
+3. Add batch operations for multiple children
+4. Add email notifications for assigned tests
+
+### Fixed Parent API Endpoints (2025-02-11 10:55:24Z)
+
+#### What
+Fixed API endpoint issues in the parent test creation flow.
+
+#### Why
+1. Frontend was using incorrect API paths (/api/parent instead of /api/parents)
+2. Missing subject-related endpoints in the backend
+
+#### How
+1. Frontend Changes:
+   - Updated `baseUrl` in parent.api.ts from '/api/parent' to '/api/parents'
+
+2. Backend Changes:
+   - Added subject endpoints to ParentController:
+     ```typescript
+     @Get('subjects')
+     @Get('subjects/:id')
+     ```
+   - Added subject methods to ParentService:
+     ```typescript
+     async getSubjects()
+     async getSubject(id: bigint)
+     ```
+
+#### Technical Details
+1. API Endpoints:
+   - GET /api/parents/children - Get linked children
+   - GET /api/parents/subjects - Get all subjects
+   - GET /api/parents/subjects/:id - Get specific subject
+
+2. Service Methods:
+   - getSubjects: Returns all subjects with topics
+   - getSubject: Returns specific subject with topics and subtopics
+
+#### Next Steps
+1. Add caching for subject data
+2. Add pagination for large subject lists
+3. Add error handling for invalid subject IDs
+4. Add subject filtering capabilities
+
+### Reuse Existing Subject API (2025-02-11 11:04:51Z)
+
+#### What
+Updated parent test creation to use existing subject API instead of creating duplicate endpoints.
+
+#### Why
+1. Avoid code duplication
+2. Maintain single source of truth for subject data
+3. Follow DRY principles
+4. Reuse existing functionality
+
+#### How
+1. Removed redundant endpoints from parent controller:
+   - Removed `/parents/subjects`
+   - Removed `/parents/subjects/:id`
+
+2. Updated ParentSubjectSelection component:
+   - Now uses `/subjects` endpoint via apiClient
+   - Reuses existing Subject type
+   - Maintains consistent subject data access
+
+#### Technical Details
+1. API Usage:
+   - GET /subjects - Get all subjects
+   - Uses shared apiClient for requests
+   - Consistent error handling
+
+2. Component Changes:
+   - Simplified state management
+   - Improved loading states
+   - Better error handling
+   - Consistent navigation flow
+
+#### Next Steps
+1. Consider caching subject data
+2. Add subject search/filter
+3. Improve error recovery
+4. Add subject metadata for parent context
